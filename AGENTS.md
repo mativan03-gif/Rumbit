@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- RUMBIT prototype state lives in `src/lib/store.ts` (localStorage, no backend); pure money/goal math lives in `src/lib/finance.ts` with tests — keeps calculations testable and the prototype offline.
