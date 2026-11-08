@@ -68,7 +68,7 @@ export function formatMoney(n: number, currency = "ARS") {
 }
 
 export function formatDate(d: string) {
-  const [y, m, day] = d.split("-").map(Number);
+  const [y = 2026, m = 1, day = 1] = d.split("-").map(Number);
   return new Date(y, m - 1, day).toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
 }
 

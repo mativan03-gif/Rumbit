@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConfiguracionRouteImport } from './routes/configuracion'
+import { Route as EstadisticasRouteImport } from './routes/estadisticas'
+import { Route as InicioRouteImport } from './routes/inicio'
+import { Route as MetasRouteImport } from './routes/metas'
+import { Route as MovimientosRouteImport } from './routes/movimientos'
+import { Route as RecomendacionesRouteImport } from './routes/recomendaciones'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfiguracionRoute = ConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EstadisticasRoute = EstadisticasRouteImport.update({
+  id: '/estadisticas',
+  path: '/estadisticas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InicioRoute = InicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetasRoute = MetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovimientosRoute = MovimientosRouteImport.update({
+  id: '/movimientos',
+  path: '/movimientos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecomendacionesRoute = RecomendacionesRouteImport.update({
+  id: '/recomendaciones',
+  path: '/recomendaciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/configuracion': typeof ConfiguracionRoute
+  '/estadisticas': typeof EstadisticasRoute
+  '/inicio': typeof InicioRoute
+  '/metas': typeof MetasRoute
+  '/movimientos': typeof MovimientosRoute
+  '/recomendaciones': typeof RecomendacionesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/configuracion': typeof ConfiguracionRoute
+  '/estadisticas': typeof EstadisticasRoute
+  '/inicio': typeof InicioRoute
+  '/metas': typeof MetasRoute
+  '/movimientos': typeof MovimientosRoute
+  '/recomendaciones': typeof RecomendacionesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/configuracion': typeof ConfiguracionRoute
+  '/estadisticas': typeof EstadisticasRoute
+  '/inicio': typeof InicioRoute
+  '/metas': typeof MetasRoute
+  '/movimientos': typeof MovimientosRoute
+  '/recomendaciones': typeof RecomendacionesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/configuracion'
+    | '/estadisticas'
+    | '/inicio'
+    | '/metas'
+    | '/movimientos'
+    | '/recomendaciones'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/configuracion'
+    | '/estadisticas'
+    | '/inicio'
+    | '/metas'
+    | '/movimientos'
+    | '/recomendaciones'
+  id:
+    | '__root__'
+    | '/'
+    | '/configuracion'
+    | '/estadisticas'
+    | '/inicio'
+    | '/metas'
+    | '/movimientos'
+    | '/recomendaciones'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConfiguracionRoute: typeof ConfiguracionRoute
+  EstadisticasRoute: typeof EstadisticasRoute
+  InicioRoute: typeof InicioRoute
+  MetasRoute: typeof MetasRoute
+  MovimientosRoute: typeof MovimientosRoute
+  RecomendacionesRoute: typeof RecomendacionesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/configuracion': {
+      id: '/configuracion'
+      path: '/configuracion'
+      fullPath: '/configuracion'
+      preLoaderRoute: typeof ConfiguracionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estadisticas': {
+      id: '/estadisticas'
+      path: '/estadisticas'
+      fullPath: '/estadisticas'
+      preLoaderRoute: typeof EstadisticasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inicio': {
+      id: '/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof InicioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metas': {
+      id: '/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof MetasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/movimientos': {
+      id: '/movimientos'
+      path: '/movimientos'
+      fullPath: '/movimientos'
+      preLoaderRoute: typeof MovimientosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recomendaciones': {
+      id: '/recomendaciones'
+      path: '/recomendaciones'
+      fullPath: '/recomendaciones'
+      preLoaderRoute: typeof RecomendacionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConfiguracionRoute: ConfiguracionRoute,
+  EstadisticasRoute: EstadisticasRoute,
+  InicioRoute: InicioRoute,
+  MetasRoute: MetasRoute,
+  MovimientosRoute: MovimientosRoute,
+  RecomendacionesRoute: RecomendacionesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
