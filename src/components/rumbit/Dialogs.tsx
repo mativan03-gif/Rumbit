@@ -33,7 +33,7 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
   const save = () => {
     const data = { type, amount: Number(amount), description, category: category || (type === "income" ? INCOME_CATEGORY : ""), date };
     const err = validateTx(data);
-    if (err) return toast.error(err);
+    if (err) { toast.error(err); return; }
     actions.saveTx({ ...data, id: tx?.id });
     toast.success(tx ? "Movimiento actualizado" : "Movimiento guardado");
     onOpenChange(false);
@@ -103,10 +103,10 @@ export function GoalDialog({ open, onOpenChange, goal }: { open: boolean; onOpen
   }, [open, goal]);
 
   const save = () => {
-    if (!name.trim()) return toast.error("Poné un nombre a tu meta.");
-    if (!(Number(target) > 0)) return toast.error("El monto objetivo debe ser mayor a cero.");
-    if (Number(saved) < 0) return toast.error("El monto inicial no puede ser negativo.");
-    if (!date) return toast.error("Elegí una fecha estimada.");
+    if (!name.trim()) { toast.error("Poné un nombre a tu meta."); return; }
+    if (!(Number(target) > 0)) { toast.error("El monto objetivo debe ser mayor a cero."); return; }
+    if (Number(saved) < 0) { toast.error("El monto inicial no puede ser negativo."); return; }
+    if (!date) { toast.error("Elegí una fecha estimada."); return; }
     actions.saveGoal({ id: goal?.id, name: name.trim(), target: Number(target), saved: Number(saved) || 0, date });
     toast.success(goal ? "Meta actualizada" : "¡Meta creada! Rumbi te acompaña.");
     onOpenChange(false);
@@ -138,7 +138,7 @@ export function ProgressDialog({ goal, onOpenChange }: { goal: Goal | null; onOp
   useEffect(() => setAmount(""), [goal]);
   const save = () => {
     if (!goal) return;
-    if (!(Number(amount) > 0)) return toast.error("El monto debe ser mayor a cero.");
+    if (!(Number(amount) > 0)) { toast.error("El monto debe ser mayor a cero."); return; }
     actions.addProgress(goal.id, Number(amount));
     toast.success("¡Avance registrado! Seguí así.");
     onOpenChange(false);

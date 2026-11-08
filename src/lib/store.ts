@@ -60,12 +60,12 @@ export const actions = {
   setName: (userName: string) => set({ userName }),
   setCurrency: (currency: string) => set({ currency }),
   setCategories: (categories: string[]) => set({ categories }),
-  saveTx: (t: Omit<Tx, "id"> & { id?: string }) =>
+  saveTx: (t: Omit<Tx, "id"> & { id?: string | undefined }) =>
     set((s) => ({
       txs: t.id ? s.txs.map((x) => (x.id === t.id ? (t as Tx) : x)) : [{ ...t, id: uid() }, ...s.txs],
     })),
   deleteTx: (id: string) => set((s) => ({ txs: s.txs.filter((x) => x.id !== id) })),
-  saveGoal: (g: Omit<Goal, "id"> & { id?: string }) =>
+  saveGoal: (g: Omit<Goal, "id"> & { id?: string | undefined }) =>
     set((s) => ({
       goals: g.id ? s.goals.map((x) => (x.id === g.id ? (g as Goal) : x)) : [...s.goals, { ...g, id: uid() }],
     })),

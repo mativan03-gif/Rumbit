@@ -26,8 +26,8 @@ function Login() {
 
   const enter = (mode: "login" | "signup" | "guest") => {
     if (mode !== "guest") {
-      if (!/^\S+@\S+\.\S+$/.test(email)) return toast.error("Ingresá un email válido.");
-      if (password.length < 6) return toast.error("La contraseña debe tener al menos 6 caracteres.");
+      if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("Ingresá un email válido."); return; }
+      if (password.length < 6) { toast.error("La contraseña debe tener al menos 6 caracteres."); return; }
     }
     actions.login(mode === "guest" ? "invitado@rumbit.app" : email, mode === "guest");
     toast.success(mode === "signup" ? "¡Cuenta demo creada!" : "¡Bienvenido!");

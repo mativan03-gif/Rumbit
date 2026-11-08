@@ -33,8 +33,8 @@ function Settings() {
 
   const addCat = () => {
     const c = newCat.trim();
-    if (!c) return toast.error("Escribí un nombre de categoría.");
-    if (categories.some((x) => x.toLowerCase() === c.toLowerCase())) return toast.error("Esa categoría ya existe.");
+    if (!c) { toast.error("Escribí un nombre de categoría."); return; }
+    if (categories.some((x) => x.toLowerCase() === c.toLowerCase())) { toast.error("Esa categoría ya existe."); return; }
     actions.setCategories([...categories, c]);
     setNewCat("");
     toast.success("Categoría agregada");
@@ -47,7 +47,7 @@ function Settings() {
           <Label htmlFor="uname">Nombre de usuario</Label>
           <div className="mt-1.5 flex gap-2">
             <Input id="uname" value={name} onChange={(e) => setName(e.target.value)} maxLength={30} />
-            <Button variant="hero" onClick={() => { if (!name.trim()) return toast.error("El nombre no puede estar vacío."); actions.setName(name.trim()); toast.success("Nombre actualizado"); }}>Guardar</Button>
+            <Button variant="hero" onClick={() => { if (!name.trim()) { toast.error("El nombre no puede estar vacío."); return; } actions.setName(name.trim()); toast.success("Nombre actualizado"); }}>Guardar</Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">{session?.guest ? "Sesión de invitado" : session?.email}</p>
           <Label className="mt-5 block">Moneda</Label>
@@ -66,7 +66,7 @@ function Settings() {
             {categories.map((c) => (
               <span key={c} className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-sm text-accent-foreground">
                 {c}
-                <button aria-label={`Quitar ${c}`} onClick={() => { if (categories.length <= 1) return toast.error("Necesitás al menos una categoría."); actions.setCategories(categories.filter((x) => x !== c)); toast.success("Categoría eliminada"); }}><X className="h-3.5 w-3.5" /></button>
+                <button aria-label={`Quitar ${c}`} onClick={() => { if (categories.length <= 1) { toast.error("Necesitás al menos una categoría."); return; } actions.setCategories(categories.filter((x) => x !== c)); toast.success("Categoría eliminada"); }}><X className="h-3.5 w-3.5" /></button>
               </span>
             ))}
           </div>
