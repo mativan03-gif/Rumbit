@@ -32,6 +32,7 @@ function Login() {
     actions.login(mode === "guest" ? "invitado@rumbit.app" : email, mode === "guest");
     toast.success(mode === "signup" ? "¡Cuenta demo creada!" : "¡Bienvenido!");
     navigate({ to: "/inicio" });
+    return undefined;
   };
 
   return (

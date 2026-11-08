@@ -44,7 +44,8 @@ function Stats() {
     const t = totals(inMonth(txs, d));
     return { mes: d.toLocaleDateString("es-AR", { month: "short" }), Ingresos: t.income, Gastos: t.expenses };
   });
-  const [prev, cur] = monthly.slice(1);
+  const prev = monthly[1]!;
+  const cur = monthly[2]!;
   const diff = prev.Gastos ? Math.round(((cur.Gastos - prev.Gastos) / prev.Gastos) * 100) : 0;
   const t = totals(filtered);
 
