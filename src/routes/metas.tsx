@@ -40,19 +40,19 @@ function Goals() {
           const { pct, remaining } = goalProgress(g);
           return (
             <Panel key={g.id}>
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
                   <h3 className="text-lg font-bold">{g.name}</h3>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground"><CalendarDays className="h-3 w-3" />{g.date ? formatDate(g.date) + " " + g.date.slice(0, 4) : "Sin fecha"}</p>
                 </div>
-                <div className="flex">
-                  <Button size="icon" variant="ghost" aria-label="Editar meta" onClick={() => { setEditing(g); setOpen(true); }}><Pencil /></Button>
-                  <Button size="icon" variant="ghost" aria-label="Eliminar meta" onClick={() => setDel(g)}><Trash2 className="text-destructive" /></Button>
+                <div className="flex shrink-0">
+                  <Button size="icon" variant="ghost" title="Editar meta" aria-label="Editar meta" onClick={() => { setEditing(g); setOpen(true); }}><Pencil /></Button>
+                  <Button size="icon" variant="ghost" title="Eliminar meta" aria-label="Eliminar meta" onClick={() => setDel(g)}><Trash2 className="text-destructive" /></Button>
                 </div>
               </div>
-              <p className="mt-4 text-3xl font-extrabold text-primary">{pct}%</p>
+              <p className="mt-6 text-4xl font-semibold tabular-nums text-accent-foreground">{pct}%</p>
               <Progress value={pct} className="mt-2 h-3" />
-              <div className="mt-3 flex justify-between text-sm">
+              <div className="mt-4 flex justify-between text-sm tabular-nums">
                 <span>{money(g.saved)} <span className="text-muted-foreground">de {money(g.target)}</span></span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{remaining ? `Te faltan ${money(remaining)}` : "¡Meta cumplida! 🎉"}</p>

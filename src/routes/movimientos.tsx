@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Camera, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Camera, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
@@ -48,11 +48,11 @@ function Movements() {
       <Panel className="mb-5">
         <div className="grid gap-3 md:grid-cols-4">
           <div className="relative md:col-span-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+            <Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
+            <Input aria-label="Buscar movimientos" placeholder="Buscar movimiento" value={q} onChange={(e) => setQ(e.target.value)} className="pl-10" />
           </div>
           <Select value={cat} onValueChange={setCat}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label="Filtrar categoría"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas las categorías</SelectItem>
               {[INCOME_CATEGORY, ...categories].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -66,15 +66,17 @@ function Movements() {
       <Panel title={`Historial (${list.length})`}>
         <ul className="divide-y divide-border">
           {list.map((t) => (
-            <li key={t.id} className="flex items-center gap-3 py-3">
-              <div className={`h-10 w-1.5 rounded-full ${t.type === "income" ? "bg-success" : "bg-secondary"}`} />
+            <li key={t.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-4 sm:flex">
+              <div className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-input sm:flex ${t.type === "income" ? "bg-success-soft text-success" : "bg-muted text-muted-foreground"}`}>{t.type === "income" ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}</div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{t.description}</p>
-                <p className="text-xs text-muted-foreground">{t.category} · {formatDate(t.date)}</p>
+                <p className="font-medium">{t.description}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t.type === "income" ? "Ingreso" : "Gasto"} · {t.category} · {formatDate(t.date)}</p>
               </div>
-              <span className={`font-semibold ${t.type === "income" ? "text-success" : ""}`}>{t.type === "income" ? "+" : "−"}{money(t.amount)}</span>
-              <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => { setEditing(t); setOpen(true); }}><Pencil /></Button>
-              <Button size="icon" variant="ghost" aria-label="Eliminar" onClick={() => setDel(t)}><Trash2 className="text-destructive" /></Button>
+              <span className={`finance-number text-sm font-semibold ${t.type === "income" ? "text-success" : ""}`}>{t.type === "income" ? "+" : "−"}{money(t.amount)}</span>
+              <div className="col-span-2 flex justify-end sm:col-auto">
+              <Button size="icon" variant="ghost" title="Editar movimiento" aria-label="Editar" onClick={() => { setEditing(t); setOpen(true); }}><Pencil /></Button>
+              <Button size="icon" variant="ghost" title="Eliminar movimiento" aria-label="Eliminar" onClick={() => setDel(t)}><Trash2 className="text-destructive" /></Button>
+              </div>
             </li>
           ))}
           {!list.length && <li className="py-10 text-center text-sm text-muted-foreground">No hay movimientos con esos filtros.</li>}

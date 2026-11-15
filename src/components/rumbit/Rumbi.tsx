@@ -21,11 +21,11 @@ export function Rumbi({ className }: { className?: string }) {
 
 export function RumbiTip({ message, title = "Consejo de Rumbi" }: { message: string; title?: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl bg-primary-soft p-4">
-      <Rumbi className="h-16 w-16 shrink-0" />
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-accent-foreground">{title}</p>
-        <p className="mt-1 text-sm text-foreground">{message}</p>
+    <div className="flex items-start gap-3 rounded-2xl bg-primary-soft p-5">
+      <Rumbi className="h-12 w-12 shrink-0 animate-none" />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-accent-foreground">{title}</p>
+        <p className="mt-1 text-sm leading-relaxed text-foreground">{message}</p>
       </div>
     </div>
   );

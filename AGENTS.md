@@ -30,3 +30,4 @@ use the editor.
 <!-- LOVABLE:END -->
 
 - RUMBIT prototype state lives in `src/lib/store.ts` (localStorage, no backend); pure money/goal math lives in `src/lib/finance.ts` with tests — keeps calculations testable and the prototype offline.
+- Keep shared visual roles, chart colors, radii, and motion in `src/styles.css` and reuse UI controls across screens — ensures consistent theming without changing prototype state or finance logic.

@@ -64,14 +64,14 @@ function Settings() {
         <Panel title="Categorías de gastos">
           <div className="flex flex-wrap gap-2">
             {categories.map((c) => (
-              <span key={c} className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-sm text-accent-foreground">
+              <span key={c} className="inline-flex max-w-full items-center gap-1 rounded-input bg-muted pl-3 text-sm text-foreground">
                 {c}
-                <button aria-label={`Quitar ${c}`} onClick={() => { if (categories.length <= 1) { toast.error("Necesitás al menos una categoría."); return; } actions.setCategories(categories.filter((x) => x !== c)); toast.success("Categoría eliminada"); }}><X className="h-3.5 w-3.5" /></button>
+                <Button size="icon" variant="ghost" title={`Quitar ${c}`} aria-label={`Quitar ${c}`} onClick={() => { if (categories.length <= 1) { toast.error("Necesitás al menos una categoría."); return; } actions.setCategories(categories.filter((x) => x !== c)); toast.success("Categoría eliminada"); }}><X className="h-3.5 w-3.5" /></Button>
               </span>
             ))}
           </div>
           <div className="mt-4 flex gap-2">
-            <Input placeholder="Nueva categoría" value={newCat} onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCat()} maxLength={24} />
+            <Input aria-label="Nueva categoría" placeholder="Nueva categoría" value={newCat} onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCat()} maxLength={24} />
             <Button variant="soft" onClick={addCat}>Agregar</Button>
           </div>
         </Panel>

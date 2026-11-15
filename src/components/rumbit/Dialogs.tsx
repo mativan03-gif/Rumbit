@@ -48,14 +48,16 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
         <div className="grid gap-4">
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
             {(["income", "expense"] as const).map((t) => (
-              <button
+              <Button
                 key={t}
                 type="button"
                 onClick={() => setType(t)}
-                className={cn("rounded-lg py-2 text-sm font-medium transition-all", type === t ? (t === "income" ? "bg-success text-primary-foreground" : "bg-primary text-primary-foreground") : "text-muted-foreground")}
+                variant="ghost"
+                aria-pressed={type === t}
+                className={cn("rounded-input text-sm font-medium", type === t ? "bg-card text-primary shadow-card hover:bg-card" : "text-muted-foreground")}
               >
                 {t === "income" ? "Ingreso" : "Gasto"}
-              </button>
+              </Button>
             ))}
           </div>
           <div className="grid gap-1.5">
@@ -66,7 +68,7 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
             <Label htmlFor="desc">Descripción *</Label>
             <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ej: Supermercado" maxLength={60} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
               <Label>Categoría *</Label>
               <Select value={category} onValueChange={setCategory}>
@@ -118,7 +120,7 @@ export function GoalDialog({ open, onOpenChange, goal }: { open: boolean; onOpen
         <DialogHeader><DialogTitle>{goal ? "Editar meta" : "Crear meta"}</DialogTitle></DialogHeader>
         <div className="grid gap-4">
           <div className="grid gap-1.5"><Label htmlFor="gname">Nombre de la meta</Label><Input id="gname" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Notebook nueva" maxLength={40} /></div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5"><Label htmlFor="gtarget">Monto objetivo</Label><Input id="gtarget" type="number" min="0" value={target} onChange={(e) => setTarget(e.target.value)} /></div>
             <div className="grid gap-1.5"><Label htmlFor="gsaved">Monto inicial ahorrado</Label><Input id="gsaved" type="number" min="0" value={saved} onChange={(e) => setSaved(e.target.value)} /></div>
           </div>

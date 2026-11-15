@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings } from "lucide-react";
+import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings, ShieldCheck } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { useApp } from "@/lib/store";
 import { Rumbi } from "./Rumbi";
@@ -23,42 +23,45 @@ export function AppShell({ title, actions, children }: { title: string; actions?
 
   return (
     <div className="min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-5 md:flex">
-        <Link to="/inicio" className="mb-8 flex items-center gap-2">
-          <Rumbi className="h-9 w-9 animate-none" />
-          <span className="text-xl font-extrabold tracking-tight text-primary">RUMBIT</span>
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar px-4 py-8 md:flex">
+        <Link to="/inicio" className="mb-10 flex min-h-11 items-center gap-2 px-3">
+          <Rumbi className="h-10 w-10 animate-none" />
+          <span className="text-2xl font-bold text-foreground">RUMBIT<span className="text-primary">.</span></span>
         </Link>
         <nav className="flex flex-col gap-1">
           {NAV.map((n) => (
             <Link
               key={n.to}
               to={n.to}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              activeProps={{ className: "!bg-primary !text-primary-foreground shadow-glow" }}
+               className="flex min-h-12 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+               activeProps={{ className: "!bg-primary-soft !text-primary font-semibold" }}
             >
               <n.icon className="h-4 w-4" />
               {n.label}
             </Link>
           ))}
         </nav>
-        <p className="mt-auto text-xs text-muted-foreground">Prototipo con datos ficticios.</p>
+         <div className="mt-auto flex items-start gap-2 border-t border-border px-3 pt-6 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" /><p>Prototipo con datos ficticios.<br />Sin conexión bancaria.</p></div>
       </aside>
 
-      <main className="pb-24 md:pb-10 md:pl-64">
-        <header className="flex flex-wrap items-center justify-between gap-3 px-5 pt-6 md:px-10 md:pt-10">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
+       <main className="min-w-0 pb-24 md:pb-12 md:pl-64">
+         <div className="mx-auto max-w-[1440px]">
+         <div className="flex items-center gap-2 border-b border-border px-5 py-4 md:hidden"><Rumbi className="h-8 w-8 animate-none" /><span className="font-bold">RUMBIT<span className="text-primary">.</span></span></div>
+         <header className="flex flex-wrap items-center justify-between gap-4 px-5 pt-8 md:px-8 md:pt-10 lg:px-10">
+           <h1 className="min-w-0 text-2xl font-bold leading-tight md:text-3xl">{title}</h1>
           {actions}
         </header>
-        <div className="animate-rise px-5 pt-6 md:px-10">{children}</div>
+         <div className="animate-rise px-5 pt-6 md:px-8 lg:px-10">{children}</div>
+         </div>
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-card md:hidden">
+       <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-card md:hidden">
         {NAV.map((n) => (
           <Link
             key={n.to}
             to={n.to}
-            className="flex flex-col items-center gap-1 py-2 text-[10px] font-medium text-muted-foreground"
-            activeProps={{ className: "!text-primary" }}
+             className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground"
+             activeProps={{ className: "!text-primary bg-primary-soft" }}
           >
             <n.icon className="h-5 w-5" />
             {"short" in n ? n.short : n.label}
@@ -71,10 +74,10 @@ export function AppShell({ title, actions, children }: { title: string; actions?
 
 export function Panel({ title, children, className = "", action }: { title?: string; children: ReactNode; className?: string; action?: ReactNode }) {
   return (
-    <section className={`rounded-2xl border border-border bg-card p-5 shadow-card ${className}`}>
+     <section className={`min-w-0 rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6 ${className}`}>
       {title && (
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="font-semibold">{title}</h2>
+           <h2 className="min-w-0 font-semibold">{title}</h2>
           {action}
         </div>
       )}
