@@ -5,6 +5,7 @@ import { AppShell, Panel } from "@/components/rumbit/AppShell";
 import { byCategory, inMonth, totals } from "@/lib/finance";
 import { useApp, useMoney } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/estadisticas")({
   head: () => ({
@@ -44,18 +45,18 @@ function Stats() {
     const t = totals(inMonth(txs, d));
     return { mes: d.toLocaleDateString("es-AR", { month: "short" }), Ingresos: t.income, Gastos: t.expenses };
   });
-  const prev = monthly[1]!;
-  const cur = monthly[2]!;
-  const diff = prev.Gastos ? Math.round(((cur.Gastos - prev.Gastos) / prev.Gastos) * 100) : 0;
+  const prev = monthly[1];
+  const cur = monthly[2];
+  const diff = prev?.Gastos && cur ? Math.round(((cur.Gastos - prev.Gastos) / prev.Gastos) * 100) : 0;
   const t = totals(filtered);
 
   return (
     <AppShell title="Estadísticas de mis gastos">
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="mb-6 flex flex-wrap gap-1 rounded-input bg-muted p-1 w-fit" role="group" aria-label="Período">
         {FILTERS.map((x) => (
-          <button key={x.id} onClick={() => setF(x.id)} className={cn("rounded-full px-4 py-2 text-sm font-medium transition-all", f === x.id ? "bg-primary text-primary-foreground shadow-glow" : "bg-card text-muted-foreground shadow-card")}>
+          <Button variant="ghost" key={x.id} aria-pressed={f === x.id} onClick={() => setF(x.id)} className={cn("rounded-input px-3 text-sm font-medium", f === x.id ? "bg-card text-primary shadow-card hover:bg-card" : "text-muted-foreground")}>
             {x.label}
-          </button>
+          </Button>
         ))}
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
@@ -93,17 +94,17 @@ function Stats() {
                 <YAxis stroke="var(--muted-foreground)" fontSize={11} tickFormatter={(v) => `${v / 1000}k`} />
                 <Tooltip formatter={(v: number) => money(v)} />
                 <Legend />
-                <Bar dataKey="Ingresos" fill="var(--success)" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="Gastos" fill="var(--primary)" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="Ingresos" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Gastos" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Panel>
         <Panel title="Resumen de hábitos" className="lg:col-span-2">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl bg-muted p-4"><p className="text-sm text-muted-foreground">Gastos del período</p><p className="text-xl font-bold">{money(t.expenses)}</p></div>
-            <div className="rounded-xl bg-muted p-4"><p className="text-sm text-muted-foreground">Categoría principal</p><p className="text-xl font-bold">{cats[0]?.name ?? "—"}</p></div>
-            <div className="rounded-xl bg-muted p-4"><p className="text-sm text-muted-foreground">Vs. mes anterior</p><p className={cn("text-xl font-bold", diff > 0 ? "text-warning" : "text-success")}>{diff > 0 ? "+" : ""}{diff}% en gastos</p></div>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div><p className="text-sm text-muted-foreground">Gastos del período</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(t.expenses)}</p></div>
+            <div><p className="text-sm text-muted-foreground">Categoría principal</p><p className="mt-2 text-xl font-semibold">{cats[0]?.name ?? "—"}</p></div>
+            <div><p className="text-sm text-muted-foreground">Vs. mes anterior</p><p className={cn("mt-2 text-xl font-semibold tabular-nums", diff > 0 ? "text-warning" : "text-success")}>{diff > 0 ? "+" : ""}{diff}% en gastos</p></div>
           </div>
         </Panel>
       </div>

@@ -30,17 +30,17 @@ function Tips() {
   const tips = buildTips(txs, goals, money);
   return (
     <AppShell title="Consejos para organizar tu dinero">
-      <div className="mb-6 flex items-center gap-4 rounded-2xl bg-gradient-primary p-5 text-primary-foreground shadow-glow">
-        <Rumbi className="h-16 w-16 shrink-0" />
-        <p className="text-sm md:text-base">Analicé tus movimientos registrados y preparé algunos consejos para vos.</p>
+      <div className="mb-8 flex items-center gap-4 border-b border-border pb-6">
+        <Rumbi className="h-14 w-14 shrink-0 animate-none" />
+        <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">Analicé tus movimientos registrados y preparé algunos consejos para vos.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {tips.map((t, i) => {
           const T = TONE[t.tone];
           return (
-            <div key={i} className="animate-rise flex gap-4 rounded-2xl border border-border bg-card p-5 shadow-card" style={{ animationDelay: `${i * 70}ms` }}>
-              <div className={`h-fit rounded-xl p-2.5 ${T.cls}`}><T.icon className="h-5 w-5" /></div>
-              <div><h3 className="font-semibold">{t.title}</h3><p className="mt-1 text-sm text-muted-foreground">{t.text}</p></div>
+            <div key={i} className="flex min-w-0 gap-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+              <div className={`h-fit shrink-0 rounded-input p-2.5 ${T.cls}`}><T.icon className="h-5 w-5" /></div>
+              <div className="min-w-0"><h3 className="font-semibold">{t.title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.text}</p></div>
             </div>
           );
         })}
