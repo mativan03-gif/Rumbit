@@ -8,6 +8,8 @@ import { buildTips } from "@/lib/tips";
 export const Route = createFileRoute("/recomendaciones")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Consejos para organizar tu dinero · RUMBIT" },
       { name: "description", content: "Recomendaciones simples basadas en tus movimientos." },
       { property: "og:title", content: "Recomendaciones · RUMBIT" },

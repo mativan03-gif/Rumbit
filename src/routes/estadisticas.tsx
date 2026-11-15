@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/estadisticas")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Estadísticas de mis gastos · RUMBIT" },
       { name: "description", content: "Gráficos de gastos por categoría y comparación mensual." },
       { property: "og:title", content: "Estadísticas · RUMBIT" },

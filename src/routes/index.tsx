@@ -11,6 +11,8 @@ import { actions } from "@/lib/store";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Bienvenido a RUMBIT · Iniciar sesión" },
       { name: "description", content: "Organizá tu dinero y alcanzá tus objetivos de ahorro con RUMBIT." },
       { property: "og:title", content: "Bienvenido a RUMBIT" },
