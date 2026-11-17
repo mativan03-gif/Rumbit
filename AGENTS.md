@@ -31,3 +31,4 @@ use the editor.
 
 - RUMBIT prototype state lives in `src/lib/store.ts` (localStorage, no backend); pure money/goal math lives in `src/lib/finance.ts` with tests — keeps calculations testable and the prototype offline.
 - Keep shared visual roles, chart colors, radii, and motion in `src/styles.css` and reuse UI controls across screens — ensures consistent theming without changing prototype state or finance logic.
+- Embed the original Rumi HTML through its public iframe route without bridging game storage to financial state — keeps the game independent and preserves its original behavior.

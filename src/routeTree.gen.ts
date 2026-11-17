@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as EstadisticasRouteImport } from './routes/estadisticas'
 import { Route as InicioRouteImport } from './routes/inicio'
+import { Route as JugarConRumiRouteImport } from './routes/jugar-con-rumi'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimientosRouteImport } from './routes/movimientos'
 import { Route as RecomendacionesRouteImport } from './routes/recomendaciones'
@@ -37,6 +38,11 @@ const InicioRoute = InicioRouteImport.update({
   path: '/inicio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JugarConRumiRoute = JugarConRumiRouteImport.update({
+  id: '/jugar-con-rumi',
+  path: '/jugar-con-rumi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MetasRoute = MetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/configuracion': typeof ConfiguracionRoute
   '/estadisticas': typeof EstadisticasRoute
   '/inicio': typeof InicioRoute
+  '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
   '/recomendaciones': typeof RecomendacionesRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/configuracion': typeof ConfiguracionRoute
   '/estadisticas': typeof EstadisticasRoute
   '/inicio': typeof InicioRoute
+  '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
   '/recomendaciones': typeof RecomendacionesRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/configuracion': typeof ConfiguracionRoute
   '/estadisticas': typeof EstadisticasRoute
   '/inicio': typeof InicioRoute
+  '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
   '/recomendaciones': typeof RecomendacionesRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/estadisticas'
     | '/inicio'
+    | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
     | '/recomendaciones'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/estadisticas'
     | '/inicio'
+    | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
     | '/recomendaciones'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/estadisticas'
     | '/inicio'
+    | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
     | '/recomendaciones'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   ConfiguracionRoute: typeof ConfiguracionRoute
   EstadisticasRoute: typeof EstadisticasRoute
   InicioRoute: typeof InicioRoute
+  JugarConRumiRoute: typeof JugarConRumiRoute
   MetasRoute: typeof MetasRoute
   MovimientosRoute: typeof MovimientosRoute
   RecomendacionesRoute: typeof RecomendacionesRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InicioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jugar-con-rumi': {
+      id: '/jugar-con-rumi'
+      path: '/jugar-con-rumi'
+      fullPath: '/jugar-con-rumi'
+      preLoaderRoute: typeof JugarConRumiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/metas': {
       id: '/metas'
       path: '/metas'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracionRoute: ConfiguracionRoute,
   EstadisticasRoute: EstadisticasRoute,
   InicioRoute: InicioRoute,
+  JugarConRumiRoute: JugarConRumiRoute,
   MetasRoute: MetasRoute,
   MovimientosRoute: MovimientosRoute,
   RecomendacionesRoute: RecomendacionesRoute,
