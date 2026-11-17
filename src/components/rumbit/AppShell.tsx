@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings, ShieldCheck } from "lucide-react";
+import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings, ShieldCheck, Gamepad2 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { useApp } from "@/lib/store";
 import { Rumbi } from "./Rumbi";
@@ -9,6 +9,7 @@ const NAV = [
   { to: "/movimientos", label: "Movimientos", icon: ListOrdered },
   { to: "/estadisticas", label: "Estadísticas", icon: BarChart3 },
   { to: "/metas", label: "Metas de ahorro", short: "Metas", icon: PiggyBank },
+  { to: "/jugar-con-rumi", label: "Jugar con Rumi", short: "Jugar", icon: Gamepad2 },
   { to: "/recomendaciones", label: "Recomendaciones", short: "Consejos", icon: Lightbulb },
   { to: "/configuracion", label: "Configuración", short: "Ajustes", icon: Settings },
 ] as const;
