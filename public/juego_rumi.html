@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7c4dff">
+<title>Rumi, la mascota de Rumbit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   RUMBIT · Mascota virtual (v1)
+   1. Variables de diseño (claro / oscuro)
+   2. Base y layout
+   3. Escenario de la mascota
+   4. Paneles (metas, accesorios, consejo)
+   5. Dibujo y animaciones del gatito (SVG)
+   ========================================================= */
+
+/* ---------- 1. Variables ---------- */
+:root{
+  color-scheme: light;
+  --bg:#f6f2ff; --surface:#ffffff; --surface-2:#ece5ff;
+  --ink:#1f1346; --ink-2:#5d5084; --line:#ddd2fb; --track:#e4dafc;
+  --violet:#7c4dff; --violet-ink:#5b2fd0; --on-violet:#ffffff;
+  --mint:#2fd6a0; --mint-ink:#0b6a51; --on-mint:#06382b;
+  --gold:#ffc83d; --danger:#e8456b; --on-danger:#ffffff;
+  --spot:rgba(47,214,160,.18); --floor:#dccfff;
+  --bubble:#ffffff; --bubble-ink:#1f1346;
+  --toast:#1f1346; --toast-ink:#ffffff;
+  --warn-bg:#fff1c2; --warn-ink:#5a4200;
+  --shadow-pet:rgba(40,20,90,.18);
+  --font-display:"Fredoka", ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#140c30; --surface:#1d1346; --surface-2:#27195c;
+    --ink:#f4efff; --ink-2:#bbaeeb; --line:#3b2b7c; --track:#38287a;
+    --violet:#9d80ff; --violet-ink:#cdbbff; --on-violet:#150a37;
+    --mint:#5df0c3; --mint-ink:#7cf5d2; --on-mint:#06382b;
+    --gold:#ffd04d; --danger:#ff7f9c; --on-danger:#2b0612;
+    --spot:rgba(93,240,195,.14); --floor:#3a2a80;
+    --bubble:#33227a; --bubble-ink:#f4efff;
+    --toast:#f4efff; --toast-ink:#1d1346;
+    --warn-bg:#4a3a12; --warn-ink:#ffe9a8;
+    --shadow-pet:rgba(0,0,0,.4);
+  }
+}
+
+/* ---------- 2. Base y layout ---------- */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.5 var(--font-body);min-height:100vh}
+button,input{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:600}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none !important}
+
+.app{max-width:1120px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) clamp(14px,3vw,28px) 56px}
+.topbar{display:flex;align-items:center;padding:6px 2px 16px}
+.brand{display:flex;align-items:center;gap:10px;font-size:26px;color:var(--violet-ink);letter-spacing:.2px}
+.brand svg{width:32px;height:32px;flex:none}
+
+.notice{background:var(--warn-bg);color:var(--warn-ink);border-radius:16px;padding:12px 16px;margin:0 0 16px;font-size:14.5px;font-weight:700}
+
+.layout{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:920px){
+  .layout{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start;gap:24px}
+}
+
+/* ---------- Botones y campos ---------- */
+.btn{appearance:none;border:0;cursor:pointer;min-height:50px;padding:10px 20px;border-radius:99px;
+  font-family:var(--font-display);font-weight:600;font-size:17px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .12s ease,filter .12s ease;touch-action:manipulation}
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:scale(.96)}
+.btn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
+.btn-violet{background:var(--violet);color:var(--on-violet)}
+.btn-mint{background:var(--mint);color:var(--on-mint)}
+.btn-line{background:transparent;color:var(--violet-ink);box-shadow:inset 0 0 0 2px var(--line)}
+.btn-sm{min-height:46px;padding:8px 18px;font-size:16px}
+.btn:focus-visible,.icon-btn:focus-visible,.acc:focus-visible,.field:focus-visible,.text-btn:focus-visible,.play-coin:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+.field{width:100%;min-height:46px;border-radius:14px;border:2px solid var(--line);background:var(--surface);padding:8px 14px}
+.field::placeholder{color:var(--ink-2);opacity:.8}
+.icon-btn{border:0;background:transparent;color:var(--ink-2);cursor:pointer;min-width:38px;min-height:38px;border-radius:99px;font-size:15px;padding:0 10px}
+.icon-btn:hover{background:var(--surface-2)}
+.icon-btn.armed{background:var(--danger);color:var(--on-danger);font-weight:800;font-size:13px}
+.text-btn{background:none;border:0;color:var(--ink-2);text-decoration:underline;cursor:pointer;padding:8px 12px;min-height:40px}
+.text-btn.armed{color:var(--danger);font-weight:800}
+.bar{position:relative;height:12px;border-radius:99px;background:var(--track);overflow:hidden}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:inherit;transition:width .45s cubic-bezier(.3,.8,.3,1)}
+
+/* ---------- 3. Escenario ---------- */
+.stage{background:var(--surface-2);border-radius:32px;padding:18px clamp(14px,3vw,26px) 24px;position:relative}
+.level-row{display:flex;align-items:center;gap:14px}
+.level-badge{flex:none;width:64px;height:64px;border-radius:50%;background:var(--violet);color:var(--on-violet);display:grid;place-content:center;text-align:center;line-height:1.05}
+.level-badge small{font-size:12px;font-weight:800}
+.level-badge b{font-family:var(--font-display);font-size:27px;font-weight:700}
+.level-info{flex:1;min-width:0}
+.level-top{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--ink-2);margin-bottom:7px;font-weight:700}
+.level-top strong{color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:16px}
+.bar-xp .fill{background:var(--gold)}
+
+.stage-pill{position:absolute;top:6px;right:0;z-index:5;background:var(--surface);border-radius:18px;padding:6px 14px;text-align:center;line-height:1.15}
+.stage-pill small{display:block;font-size:12px;font-weight:800;color:var(--ink-2)}
+.stage-pill strong{font-family:var(--font-display);font-weight:600;font-size:17px;color:var(--violet-ink)}
+
+.bubble{position:relative;isolation:isolate;margin:16px auto 0;max-width:min(100%,470px);background:var(--bubble);color:var(--bubble-ink);
+  border-radius:22px;padding:12px 18px;text-align:center;font-weight:800;min-height:3.6em;display:grid;place-items:center;line-height:1.35}
+.bubble::after{content:"";position:absolute;z-index:-1;left:50%;bottom:-8px;width:18px;height:18px;background:var(--bubble);transform:translateX(-50%) rotate(45deg);border-radius:4px}
+.bubble.pop{animation:pop .3s ease-out}
+@keyframes pop{from{transform:scale(.94);opacity:.4}to{transform:scale(1);opacity:1}}
+
+.pet-area{position:relative;display:flex;justify-content:center;padding:20px 0 12px;margin-top:4px}
+.pet-area::before{content:"";position:absolute;left:50%;top:50%;width:min(80%,380px);aspect-ratio:1;transform:translate(-50%,-52%);border-radius:50%;background:var(--spot)}
+.pet-area::after{content:"";position:absolute;left:50%;bottom:10px;width:min(72%,340px);height:28px;transform:translateX(-50%);border-radius:50%;background:var(--floor)}
+
+.pet-wrap{position:relative;z-index:1;width:clamp(210px,min(78%,46vh),330px);cursor:pointer;touch-action:none;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+  transform-origin:50% 92%;border-radius:36%}
+.pet-wrap:focus-visible{outline:3px solid var(--violet);outline-offset:6px}
+.pet-wrap.bounce{animation:bounce .5s ease-out}
+.pet-wrap.petting{animation:wiggle .32s ease-in-out infinite alternate}
+.pet-wrap.jump{animation:jump .9s ease-out}
+.pet-wrap.evolve{animation:evolve 1.5s ease-out}
+@keyframes bounce{0%{transform:scale(1,1)}25%{transform:scale(1.08,.9)}55%{transform:scale(.97,1.05) translateY(-14px)}80%{transform:scale(1.03,.97)}100%{transform:scale(1,1)}}
+@keyframes wiggle{from{transform:rotate(-2.2deg)}to{transform:rotate(2.2deg)}}
+@keyframes jump{0%,100%{transform:translateY(0)}30%{transform:translateY(-26px) scale(.98,1.04)}55%{transform:translateY(0) scale(1.05,.94)}75%{transform:translateY(-8px)}}
+@keyframes evolve{0%{transform:scale(1);filter:brightness(1)}30%{transform:scale(.84);filter:brightness(2.4) saturate(.3)}60%{transform:scale(1.16);filter:brightness(1.7)}100%{transform:scale(1);filter:none}}
+
+.particles,.play-layer{position:absolute;inset:0;pointer-events:none;z-index:3}
+.play-layer{z-index:4}
+.particle{position:absolute;font-size:24px;line-height:1;font-weight:700;animation:floatUp 1.3s ease-out forwards;will-change:transform,opacity;text-shadow:0 1px 6px rgba(255,255,255,.35)}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-96px) scale(1.2) rotate(var(--rot))}}
+
+.play-hud{position:absolute;left:8px;top:4px;display:flex;gap:14px;background:var(--surface);border-radius:99px;padding:6px 16px;font-family:var(--font-display);font-weight:600;font-size:15px}
+.play-coin{position:absolute;pointer-events:auto;width:50px;height:50px;margin:-25px 0 0 -25px;border:0;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff4b8,#ffd23f 55%,#e29a00);color:#8a5a00;font:700 21px var(--font-display);
+  box-shadow:0 0 0 3px rgba(255,255,255,.6),0 4px 12px rgba(0,0,0,.2);cursor:pointer;animation:coinLife 1.6s ease-in-out forwards;touch-action:manipulation}
+@keyframes coinLife{0%{transform:scale(0) rotate(-40deg)}12%{transform:scale(1.15)}20%{transform:scale(1)}78%{transform:scale(1);opacity:1}100%{transform:scale(.4);opacity:0}}
+
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:10px}
+.meter-top{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14.5px;margin-bottom:7px}
+.meter-top .ico{width:17px;height:17px;flex:none;fill:currentColor}
+.meter-top .val{margin-left:auto;font-family:var(--font-display);font-weight:600;color:var(--ink-2)}
+.meter.happy .ico{color:var(--violet)}
+.meter.energy .ico{color:var(--mint-ink)}
+.bar-happy .fill{background:var(--violet)}
+.bar-energy .fill{background:var(--mint)}
+.meter.low .fill{background:var(--danger)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.hint{margin:14px 0 0;text-align:center;color:var(--ink-2);font-size:14px}
+
+/* ---------- 4. Paneles ---------- */
+.tip{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:start}
+.tip-coin{width:42px;height:42px}
+.tip-text{margin:0;font-size:17px;line-height:1.45;font-weight:800;min-height:3em}
+.tip-foot{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tip-note{margin:0;font-size:12.5px;color:var(--ink-2);max-width:30ch}
+.tip-text.swap{animation:pop .3s ease-out}
+
+.side{background:var(--surface);border:1px solid var(--line);border-radius:26px}
+.side > section{padding:22px clamp(16px,3vw,26px)}
+.side > section + section{border-top:1px solid var(--line)}
+.side h2{font-size:22px;margin-bottom:14px}
+.side h3{font-size:17px;margin-bottom:10px}
+
+.evo-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.evo-pct{font-family:var(--font-display);font-size:30px;font-weight:600;line-height:1}
+.evo-desc{font-size:14px;color:var(--ink-2);text-align:right;font-weight:700}
+.bar-evo{height:14px}
+.bar-evo .fill{background:var(--mint)}
+.bar-evo .tick{position:absolute;top:0;bottom:0;width:3px;background:var(--surface);z-index:1}
+.evo-marks{position:relative;height:20px;margin-top:7px;font-size:12.5px;font-weight:800;color:var(--ink-2)}
+.evo-mark{position:absolute;top:0;white-space:nowrap;transform:translateX(-50%)}
+.evo-mark:first-child{transform:none}
+.evo-mark:last-child{transform:translateX(-100%)}
+.evo-mark.reached{color:var(--violet-ink)}
+.evo-next{margin:10px 0 0;font-size:14.5px;color:var(--ink-2)}
+
+.goals{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:14px}
+.goals:empty{display:none}
+.goal{border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.goal-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.goal-name{font-family:var(--font-display);font-weight:600;font-size:18px;overflow-wrap:anywhere}
+.goal-nums{display:flex;justify-content:space-between;gap:8px;font-size:14.5px;color:var(--ink-2);margin:6px 0 8px;font-weight:700}
+.goal .bar{height:10px}
+.goal .bar .fill{background:var(--violet)}
+.goal.done .bar .fill{background:var(--mint)}
+.goal-add{display:flex;gap:8px;margin-top:14px}
+.goal-add .field{flex:1;min-width:0}
+.goal-done{margin:12px 0 0;color:var(--mint-ink);font-weight:800;font-size:14.5px}
+.empty{margin:18px 0 0;color:var(--ink-2)}
+.new-goal{margin-top:22px;padding-top:18px;border-top:1px dashed var(--line)}
+.new-goal-row{display:grid;gap:10px;grid-template-columns:1fr auto}
+.new-goal-row .field:first-child{grid-column:1/-1}
+
+.acc-hint{margin:-6px 0 16px;color:var(--ink-2);font-size:14.5px}
+.acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.acc{appearance:none;cursor:pointer;border:2px solid var(--line);background:transparent;border-radius:18px;padding:12px 8px;display:grid;justify-items:center;align-content:center;gap:4px;text-align:center;min-height:106px;touch-action:manipulation}
+.acc-icon{font-size:30px;line-height:1.1}
+.acc-name{font-weight:800;font-size:13.5px;line-height:1.2}
+.acc-state{font-size:12.5px;color:var(--ink-2);font-weight:700}
+.acc.on{border-color:var(--violet);background:var(--surface-2)}
+.acc.on .acc-state{color:var(--violet-ink);font-weight:800}
+.acc.locked{opacity:.62;border-style:dashed}
+
+.foot{margin-top:20px;text-align:center}
+
+.toasts{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92vw,430px);display:grid;gap:8px;z-index:50;pointer-events:none}
+.toast{background:var(--toast);color:var(--toast-ink);border-radius:16px;padding:12px 16px;font-weight:800;font-size:15px;text-align:center;animation:toastIn .28s ease-out;transition:opacity .3s,transform .3s}
+.toast.level{background:var(--violet);color:var(--on-violet)}
+.toast.unlock{background:var(--gold);color:#3b2a00}
+.toast.warn{background:var(--danger);color:var(--on-danger)}
+.toast.out{opacity:0;transform:translateY(8px)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Misiones y celebración de evolución */
+.mission-panel{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px}
+.mission-panel h2{font-size:21px;margin-bottom:4px}
+.mission-sub{color:var(--ink-2);font-size:13px;margin:0 0 12px}
+.mission-list{display:grid;gap:9px}
+.mission-item{display:flex;align-items:center;gap:11px;border-radius:13px;background:var(--surface-2);padding:11px 12px}
+.mission-icon{width:31px;height:31px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--surface);font-weight:800}
+.mission-item.done{outline:1px solid var(--mint)}
+.mission-item.done .mission-icon{background:var(--mint);color:var(--on-mint)}
+.mission-info{flex:1;min-width:0}.mission-info strong{display:block;font-size:14px}.mission-info small{color:var(--ink-2);font-size:12px}
+.mission-xp{font-size:12px;color:var(--violet-ink);font-weight:800;white-space:nowrap}
+.record-pill{display:inline-block;background:var(--surface);padding:6px 12px;border-radius:20px;font-size:13px;font-weight:800;color:var(--violet-ink);margin-top:10px}
+.evo-flash{position:fixed;inset:0;z-index:90;display:grid;place-items:center;pointer-events:none;background:rgba(29,13,70,.52);animation:evoBackdrop 2.8s ease forwards}
+.evo-flash-card{background:var(--surface);color:var(--ink);border:3px solid var(--gold);border-radius:28px;padding:28px 34px;text-align:center;box-shadow:0 15px 55px rgba(0,0,0,.25);animation:evoCard 2.8s ease forwards;max-width:90vw}
+.evo-flash-card .star{font-size:52px;display:block}.evo-flash-card strong{font:700 30px var(--font-display);display:block}.evo-flash-card span{font-weight:700}
+@keyframes evoBackdrop{0%{opacity:0}15%,75%{opacity:1}100%{opacity:0}}
+@keyframes evoCard{0%{transform:scale(.55) rotate(-8deg)}20%{transform:scale(1.1) rotate(2deg)}35%,75%{transform:scale(1)}100%{transform:scale(.9)}}
+@media(prefers-reduced-motion:reduce){.evo-flash,.evo-flash-card{animation:none}}
+/* ---------- 5. El gatito (SVG) ---------- */
+.pet{display:block;width:100%;height:auto;overflow:visible}
+.pet .shadow{fill:var(--shadow-pet)}
+
+/* Todo lo que cambia con el estado empieza oculto */
+.pet .e,.pet .mo,.pet .evo,.pet .acc,.pet .zzz,.pet .tear{display:none}
+
+/* Expresiones: cada estado de ánimo muestra sus ojos y su boca */
+.pet[data-mood="neutral"]   :is(.e-neutral,.mo-neutral),
+.pet[data-mood="happy"]     :is(.e-happy,.mo-happy),
+.pet[data-mood="love"]      :is(.e-love,.mo-love),
+.pet[data-mood="wink"]      :is(.e-wink,.mo-wink),
+.pet[data-mood="surprised"] :is(.e-surprised,.mo-surprised),
+.pet[data-mood="sad"]       :is(.e-sad,.mo-sad,.tear),
+.pet[data-mood="tired"]     :is(.e-tired,.mo-tired),
+.pet[data-mood="sleep"]     :is(.e-sleep,.mo-sleep,.zzz){display:inline}
+
+/* Evolución (clases acumulativas s2, s3, s4) */
+.pet.s2 .evo-2,.pet.s3 .evo-3,.pet.s4 .evo-4{display:inline}
+/* Accesorios */
+.pet .acc.on{display:inline}
+
+/* Crecimiento por etapa */
+.pet .grow{transform-origin:150px 316px;transform:scale(.92);transition:transform .9s cubic-bezier(.3,1.5,.4,1)}
+.pet.s2 .grow{transform:scale(.94)}
+.pet.s3 .grow,.pet.s4 .grow{transform:scale(1)}
+
+/* Movimiento de reposo */
+.pet .body-bob{transform-origin:150px 316px;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(1.012,.99)}}
+.pet[data-mood="sleep"] .body-bob{animation-duration:5.5s}
+
+.pet .head{transform-origin:150px 205px;animation:sway 5s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-1.4deg)}50%{transform:rotate(1.4deg)}}
+.pet[data-mood="sleep"] .head{animation:none;transform:rotate(5deg) translateY(5px)}
+.pet[data-mood="tired"] .head,.pet[data-mood="sad"] .head{animation:none;transform:rotate(-2.5deg) translateY(3px)}
+
+.pet .tail{transform-origin:198px 278px;animation:wag var(--wag,2.4s) ease-in-out infinite}
+@keyframes wag{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(11deg)}}
+.pet[data-mood="happy"],.pet[data-mood="wink"]{--wag:.7s}
+.pet[data-mood="love"]{--wag:.5s}
+.pet[data-mood="sad"],.pet[data-mood="tired"],.pet[data-mood="sleep"]{--wag:5.5s}
+
+.pet .ear-l{transform-origin:94px 92px;animation:twitchL 6s ease-in-out infinite}
+.pet .ear-r{transform-origin:206px 92px;animation:twitchR 7.5s ease-in-out 1.5s infinite}
+@keyframes twitchL{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-9deg)}94%{transform:rotate(3deg)}}
+@keyframes twitchR{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(9deg)}94%{transform:rotate(-3deg)}}
+.pet[data-mood="sad"] .ear-l,.pet[data-mood="tired"] .ear-l,.pet[data-mood="sleep"] .ear-l{animation:none;transform:rotate(-12deg)}
+.pet[data-mood="sad"] .ear-r,.pet[data-mood="tired"] .ear-r,.pet[data-mood="sleep"] .ear-r{animation:none;transform:rotate(12deg)}
+
+.pet .blink{transform-origin:150px 136px;animation:blink 5s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+.pet .pupils{transition:transform .14s ease-out}
+
+.pet .antenna-light{opacity:.55;transform-origin:150px 34px}
+.pet.s2 .antenna-light{opacity:1;animation:pulse 2.2s ease-in-out infinite}
+.pet[data-mood="sleep"] .antenna-light{animation:none;opacity:.35}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+.pet .antenna-ring{transform-origin:150px 34px;animation:ring 2.2s ease-in-out infinite}
+@keyframes ring{0%,100%{transform:scale(.9);opacity:.8}50%{transform:scale(1.25);opacity:.2}}
+
+.pet .coin{transform-origin:150px 260px;animation:coinFlip 7s ease-in-out infinite}
+@keyframes coinFlip{0%,86%,100%{transform:scaleX(1)}93%{transform:scaleX(.12)}}
+.pet .coin-shine{animation:shine 4.5s ease-in-out infinite}
+@keyframes shine{0%,55%{transform:translateX(0)}100%{transform:translateX(96px)}}
+
+.pet .blush{opacity:.25;transition:opacity .3s}
+.pet[data-mood="happy"] .blush,.pet[data-mood="love"] .blush,.pet[data-mood="wink"] .blush{opacity:.65}
+.pet .heart{transform-box:fill-box;transform-origin:center;animation:beat .8s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.pet .tear{animation:tear 2.6s ease-in infinite}
+@keyframes tear{0%{transform:translateY(-4px);opacity:0}25%{opacity:1}100%{transform:translateY(18px);opacity:0}}
+.pet .zzz text{opacity:0;animation:zz 2.8s ease-in-out infinite}
+.pet .zzz text:nth-child(2){animation-delay:.7s}
+.pet .zzz text:nth-child(3){animation-delay:1.4s}
+@keyframes zz{0%{opacity:0;transform:translate(-6px,8px)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px)}}
+.pet .aura{transform-origin:150px 190px;animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pet .spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2.4s ease-in-out infinite}
+.pet .spark.d2{animation-delay:.6s}.pet .spark.d3{animation-delay:1.2s}.pet .spark.d4{animation-delay:1.8s}
+@keyframes twinkle{0%,100%{transform:scale(.3);opacity:.2}50%{transform:scale(1.1);opacity:1}}
+.pet .halo{transform-origin:150px 9px;animation:halo 3s ease-in-out infinite}
+@keyframes halo{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+@media (prefers-reduced-motion: reduce){
+  .pet *,.pet-wrap,.bubble,.tip-text,.toast,.particle,.play-coin{animation:none !important;transition:none !important}
+  .pet .zzz text{opacity:1}
+}
+
+/* Minijuego: monedas que caen y Rumi controlable */
+.pet-area.game-active{height:350px;overflow:hidden;touch-action:none;border-radius:20px;background:linear-gradient(180deg,rgba(124,77,255,.12),rgba(47,214,160,.13))}
+.pet-area.game-active::before,.pet-area.game-active::after{display:none}
+.pet-area.game-active > .pet-wrap{visibility:hidden;pointer-events:none}
+.pet-area.game-active .play-layer{pointer-events:auto;touch-action:none;overflow:hidden}
+.game-player{position:absolute;bottom:4px;width:84px;height:94px;transform:translateX(-50%);pointer-events:none;z-index:3;filter:drop-shadow(0 5px 5px rgba(0,0,0,.18))}
+.game-player svg{width:100%;height:100%}
+.game-drop{position:absolute;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;pointer-events:none;z-index:2;will-change:transform;transform:translate(-50%,-50%);font-family:var(--font-display);font-weight:700;font-size:21px}
+.game-drop.good{background:radial-gradient(circle at 32% 28%,#fff8c9,#ffd23f 58%,#df9600);border:3px solid #d69b13;color:#805100;box-shadow:0 3px 9px rgba(0,0,0,.16)}
+.game-drop.bad{background:var(--surface);border:2px solid var(--danger);font-size:24px}
+.game-hud{position:absolute;top:9px;left:9px;right:9px;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;font:700 13px var(--font-display);pointer-events:none}
+.game-hud span{background:var(--surface);padding:6px 9px;border-radius:99px}
+.game-instructions{position:absolute;bottom:104px;left:10px;right:10px;text-align:center;font-size:13px;font-weight:800;color:var(--ink-2);pointer-events:none}
+.game-controls{display:none;gap:10px;justify-content:center;margin-top:10px}
+.game-controls[aria-hidden="false"]{display:flex}
+.game-controls button{min-width:92px;min-height:46px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font-size:22px;cursor:pointer;touch-action:none}
+@media (max-width:600px){.pet-area.game-active{height:320px}.game-player{width:72px;height:83px}}
+
+</style>
+</head>
+<body>
+<div class="app"><p style="margin:0 0 12px"><a href="index.html" style="color:#7c4dff;font-weight:800;text-decoration:none">← Volver a Rumbit</a></p>
+
+  <header class="topbar">
+    <h1 class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#ffc83d" stroke="#c98400" stroke-width="2"/><circle cx="16" cy="16" r="10" fill="none" stroke="#b87800" stroke-width="1.4" opacity=".55"/><text x="16" y="22" text-anchor="middle" font-family="Fredoka, system-ui, sans-serif" font-weight="700" font-size="16" fill="#8a5a00">R</text></svg>
+      Rumbit
+    </h1>
+  </header>
+
+  <p class="notice" id="storageNotice" hidden>Este navegador no permite guardar datos en esta vista, así que el progreso se perderá al recargar. Abrí el archivo index.html directamente en tu navegador y se guardará solo.</p>
+
+  <div class="layout">
+
+    <!-- ===================== COLUMNA IZQUIERDA ===================== -->
+    <div class="main-col">
+      <section class="stage" aria-label="Tu mascota">
+
+        <div class="level-row">
+          <div class="level-badge"><small>Nivel</small><b id="lvlN">1</b></div>
+          <div class="level-info">
+            <div class="level-top"><strong>Experiencia</strong><span id="xpText">0 / 30 XP</span></div>
+            <div class="bar bar-xp" id="xpBar" role="progressbar" aria-label="Experiencia" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="fill" id="xpFill"></span></div>
+          </div>
+        </div>
+
+        <div class="bubble" id="bubble" aria-live="polite"><span id="bubbleText">¡Hola!</span></div>
+
+        <div class="pet-area" id="petArea">
+          <div class="stage-pill" aria-live="polite"><small id="stageNum">Etapa 1</small><strong id="stageName">Bit</strong></div>
+          <div class="pet-wrap" id="petWrap" role="button" tabindex="0" aria-label="Rumi, tu gatito robot. Tocalo para saludarlo o deslizá el dedo sobre él para acariciarlo.">
+
+<!-- ================== GATITO ROBOT (SVG) ================== -->
+<svg class="pet s1" id="pet" data-mood="neutral" viewBox="0 0 300 330" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ebe4ff"/></linearGradient>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d1c66"/><stop offset="1" stop-color="#190e3c"/></linearGradient>
+    <radialGradient id="gCoin" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff4b8"/><stop offset=".55" stop-color="#ffd23f"/><stop offset="1" stop-color="#e29a00"/></radialGradient>
+    <radialGradient id="gEye" cx=".5" cy=".5" r=".65"><stop offset="0" stop-color="#c4ffee"/><stop offset="1" stop-color="#55e8bd"/></radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="coinClip"><circle cx="150" cy="260" r="19"/></clipPath>
+    <clipPath id="clipSadL"><path d="M88 135 L140 119 L140 182 L88 182 Z"/></clipPath>
+    <clipPath id="clipSadR"><path d="M212 135 L160 119 L160 182 L212 182 Z"/></clipPath>
+    <clipPath id="clipTired"><rect x="88" y="136" width="124" height="50"/></clipPath>
+  </defs>
+
+  <ellipse class="shadow" cx="150" cy="318" rx="82" ry="9"/>
+
+  <!-- Evolución 3: aro de energía -->
+  <g class="evo evo-3"><circle class="aura" cx="150" cy="190" r="138" fill="none" stroke="#6ff2c8" stroke-width="3" stroke-dasharray="4 11" opacity=".55"/></g>
+
+  <g class="grow">
+  <g class="body-bob">
+
+    <!-- Cola -->
+    <g class="tail">
+      <path d="M196 278 C252 288 282 248 262 206" fill="none" stroke="#cbbaf7" stroke-width="20" stroke-linecap="round"/>
+      <path d="M196 278 C252 288 282 248 262 206" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+      <circle cx="262" cy="206" r="9" fill="#6ff2c8" filter="url(#glow)"/>
+    </g>
+
+    <!-- Cuerpo -->
+    <rect x="92" y="196" width="116" height="102" rx="50" fill="url(#gBody)" stroke="#cbbaf7" stroke-width="3"/>
+    <ellipse cx="150" cy="262" rx="38" ry="32" fill="#f1ebff"/>
+    <g class="evo evo-3" fill="none" stroke="#6ff2c8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M108 232 H124 L130 238"/><circle cx="105" cy="232" r="2.4" fill="#6ff2c8"/>
+      <path d="M106 282 H122"/>
+      <path d="M192 232 H176 L170 238"/><circle cx="195" cy="232" r="2.4" fill="#6ff2c8"/>
+      <path d="M194 282 H178"/>
+    </g>
+
+    <!-- Patitas -->
+    <ellipse cx="122" cy="296" rx="22" ry="14" fill="#ffffff" stroke="#cbbaf7" stroke-width="3"/>
+    <ellipse cx="178" cy="296" rx="22" ry="14" fill="#ffffff" stroke="#cbbaf7" stroke-width="3"/>
+    <path d="M116 299 v7 M128 299 v7 M172 299 v7 M184 299 v7" stroke="#cbbaf7" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Moneda dorada -->
+    <g class="coin">
+      <circle cx="150" cy="260" r="21" fill="url(#gCoin)" stroke="#c98400" stroke-width="2.5"/>
+      <circle cx="150" cy="260" r="15.5" fill="none" stroke="#b87800" stroke-width="1.6" opacity=".55"/>
+      <text x="150" y="267" text-anchor="middle" font-family="Fredoka, system-ui, sans-serif" font-weight="700" font-size="20" fill="#8a5a00">R</text>
+      <g clip-path="url(#coinClip)"><g transform="rotate(22 150 260)"><rect class="coin-shine" x="112" y="228" width="10" height="64" fill="#ffffff" opacity=".75"/></g></g>
+      <circle class="evo evo-4" cx="150" cy="260" r="24" fill="none" stroke="#ffd23f" stroke-width="3" opacity=".85" filter="url(#glow)"/>
+    </g>
+
+    <!-- Cabeza -->
+    <g class="head">
+      <!-- Bigotes (salen por detrás de la cabeza) -->
+      <g stroke="#b79cff" stroke-width="3" stroke-linecap="round">
+        <path d="M72 150 L30 141"/><path d="M72 162 L26 164"/><path d="M72 174 L32 187"/>
+        <path d="M228 150 L270 141"/><path d="M228 162 L274 164"/><path d="M228 174 L268 187"/>
+      </g>
+      <!-- Orejas -->
+      <g class="ear-l">
+        <path d="M68 106 L58 40 L122 74 Z" fill="#ffffff" stroke="#cbbaf7" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M74 98 L68 57 L108 78 Z" fill="#b79cff" stroke="#b79cff" stroke-width="5" stroke-linejoin="round"/>
+      </g>
+      <g class="ear-r">
+        <path d="M232 106 L242 40 L178 74 Z" fill="#ffffff" stroke="#cbbaf7" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M226 98 L232 57 L192 78 Z" fill="#b79cff" stroke="#b79cff" stroke-width="5" stroke-linejoin="round"/>
+      </g>
+      <!-- Antena -->
+      <line x1="150" y1="68" x2="150" y2="42" stroke="#cbbaf7" stroke-width="5" stroke-linecap="round"/>
+      <circle class="antenna-ring evo evo-3" cx="150" cy="34" r="13" fill="none" stroke="#6ff2c8" stroke-width="2"/>
+      <circle class="antenna-light" cx="150" cy="34" r="8" fill="#6ff2c8" filter="url(#glow)"/>
+
+      <!-- Cara -->
+      <rect x="52" y="64" width="196" height="152" rx="66" fill="url(#gBody)" stroke="#cbbaf7" stroke-width="3"/>
+      <rect x="72" y="92" width="156" height="100" rx="46" fill="url(#gScreen)"/>
+      <ellipse cx="150" cy="104" rx="58" ry="8" fill="#ffffff" opacity=".07"/>
+      <rect class="evo evo-2" x="72" y="92" width="156" height="100" rx="46" fill="none" stroke="#6ff2c8" stroke-width="2" opacity=".55" filter="url(#glow)"/>
+      <g class="evo evo-2" stroke="#6ff2c8" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M62 112 V130 L66 134"/><circle cx="62" cy="108" r="2.2" fill="#6ff2c8"/>
+        <path d="M62 170 V182"/><circle cx="62" cy="186" r="2.2" fill="#6ff2c8"/>
+        <path d="M238 112 V130 L234 134"/><circle cx="238" cy="108" r="2.2" fill="#6ff2c8"/>
+        <path d="M238 170 V182"/><circle cx="238" cy="186" r="2.2" fill="#6ff2c8"/>
+      </g>
+
+      <ellipse class="blush" cx="94" cy="166" rx="11" ry="6" fill="#c9a8ff"/>
+      <ellipse class="blush" cx="206" cy="166" rx="11" ry="6" fill="#c9a8ff"/>
+      <path d="M145 156 L155 156 L150 162 Z" fill="#c9a8ff" stroke="#c9a8ff" stroke-width="2" stroke-linejoin="round"/>
+
+      <!-- Ojos luminosos: uno por expresión -->
+      <g class="e e-neutral"><g class="blink">
+        <ellipse cx="116" cy="136" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/>
+        <ellipse cx="184" cy="136" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/>
+        <g class="pupils" id="pupils">
+          <ellipse cx="116" cy="138" rx="8.5" ry="12.5" fill="#1a0f3d"/><ellipse cx="184" cy="138" rx="8.5" ry="12.5" fill="#1a0f3d"/>
+          <circle cx="112.5" cy="131" r="3.6" fill="#ffffff"/><circle cx="180.5" cy="131" r="3.6" fill="#ffffff"/>
+        </g>
+      </g></g>
+
+      <g class="e e-happy" fill="none" stroke="#7dffd6" stroke-width="7" stroke-linecap="round" filter="url(#glow)">
+        <path d="M97 144 Q116 118 135 144"/><path d="M165 144 Q184 118 203 144"/>
+      </g>
+
+      <g class="e e-love" filter="url(#glow)">
+        <g transform="translate(116 136)"><path class="heart" d="M0 15 C-28 -3 -14 -27 0 -10 C14 -27 28 -3 0 15 Z" fill="#d6bcff"/></g>
+        <g transform="translate(184 136)"><path class="heart" d="M0 15 C-28 -3 -14 -27 0 -10 C14 -27 28 -3 0 15 Z" fill="#d6bcff"/></g>
+      </g>
+
+      <g class="e e-wink">
+        <ellipse cx="116" cy="136" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/>
+        <ellipse cx="116" cy="138" rx="8.5" ry="12.5" fill="#1a0f3d"/><circle cx="112.5" cy="131" r="3.6" fill="#ffffff"/>
+        <path d="M167 140 Q184 120 201 140" fill="none" stroke="#7dffd6" stroke-width="7" stroke-linecap="round" filter="url(#glow)"/>
+      </g>
+
+      <g class="e e-surprised">
+        <ellipse cx="116" cy="134" rx="19" ry="24" fill="url(#gEye)" filter="url(#glow)"/>
+        <ellipse cx="184" cy="134" rx="19" ry="24" fill="url(#gEye)" filter="url(#glow)"/>
+        <circle cx="116" cy="136" r="6" fill="#1a0f3d"/><circle cx="184" cy="136" r="6" fill="#1a0f3d"/>
+        <circle cx="113.5" cy="132.5" r="2.4" fill="#ffffff"/><circle cx="181.5" cy="132.5" r="2.4" fill="#ffffff"/>
+      </g>
+
+      <g class="e e-sad">
+        <g clip-path="url(#clipSadL)">
+          <ellipse cx="116" cy="138" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/>
+          <ellipse cx="116" cy="146" rx="8.5" ry="11" fill="#1a0f3d"/><circle cx="112.5" cy="141" r="3.3" fill="#ffffff"/>
+        </g>
+        <g clip-path="url(#clipSadR)">
+          <ellipse cx="184" cy="138" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/>
+          <ellipse cx="184" cy="146" rx="8.5" ry="11" fill="#1a0f3d"/><circle cx="180.5" cy="141" r="3.3" fill="#ffffff"/>
+        </g>
+      </g>
+      <path class="tear" d="M96 160 Q90 170 96 175 Q102 170 96 160 Z" fill="#8fe9ff"/>
+
+      <g class="e e-tired" opacity=".85">
+        <g clip-path="url(#clipTired)">
+          <ellipse cx="116" cy="140" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/><ellipse cx="116" cy="147" rx="8.5" ry="10" fill="#1a0f3d"/>
+          <ellipse cx="184" cy="140" rx="17" ry="21" fill="url(#gEye)" filter="url(#glow)"/><ellipse cx="184" cy="147" rx="8.5" ry="10" fill="#1a0f3d"/>
+        </g>
+        <path d="M96 136 H136 M164 136 H204" stroke="#7dffd6" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+      </g>
+
+      <g class="e e-sleep" fill="none" stroke="#7dffd6" stroke-width="6" stroke-linecap="round" opacity=".7">
+        <path d="M99 138 Q116 152 133 138"/><path d="M167 138 Q184 152 201 138"/>
+      </g>
+
+      <!-- Bocas -->
+      <g class="mo mo-neutral mo-love mo-wink" fill="none" stroke="#7dffd6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M136 168 Q143 177 150 168 Q157 177 164 168"/>
+      </g>
+      <g class="mo mo-happy">
+        <path d="M134 166 Q150 192 166 166 Z" fill="#7dffd6" stroke="#7dffd6" stroke-width="3" stroke-linejoin="round" filter="url(#glow)"/>
+        <ellipse cx="150" cy="175.5" rx="6" ry="3.5" fill="#d6bcff"/>
+      </g>
+      <ellipse class="mo mo-surprised" cx="150" cy="173" rx="6" ry="8" fill="none" stroke="#7dffd6" stroke-width="4"/>
+      <path class="mo mo-sad" d="M137 179 Q150 166 163 179" fill="none" stroke="#7dffd6" stroke-width="4" stroke-linecap="round"/>
+      <path class="mo mo-tired" d="M139 173 Q145 170 150 173 T161 173" fill="none" stroke="#7dffd6" stroke-width="4" stroke-linecap="round"/>
+      <ellipse class="mo mo-sleep" cx="150" cy="172" rx="4.5" ry="3.8" fill="none" stroke="#7dffd6" stroke-width="3.5" opacity=".7"/>
+
+      <!-- Accesorios de cara y cabeza -->
+      <g class="acc" data-acc="glasses" fill="rgba(255,255,255,.06)" stroke="#e5d6ff" stroke-width="4">
+        <circle cx="116" cy="137" r="27"/><circle cx="184" cy="137" r="27"/>
+        <path d="M143 134 Q150 129 157 134" fill="none"/>
+        <path d="M89 130 L74 126 M211 130 L226 126" fill="none" stroke-linecap="round"/>
+      </g>
+      <g class="acc" data-acc="tophat" transform="rotate(-7 150 66)">
+        <ellipse cx="150" cy="66" rx="54" ry="9" fill="#4a2a9c"/>
+        <path d="M118 66 L121 16 Q150 8 179 16 L182 66 Z" fill="#6d3fe0"/>
+        <ellipse cx="150" cy="16" rx="29" ry="6" fill="#8460f2"/>
+        <path d="M119.5 56 L180.5 56 L182 66 L118 66 Z" fill="#ffd23f"/>
+      </g>
+      <g class="acc" data-acc="crown">
+        <path d="M110 68 L104 26 L128 46 L150 18 L172 46 L196 26 L190 68 Z" fill="url(#gCoin)" stroke="#c98400" stroke-width="3" stroke-linejoin="round"/>
+        <rect x="113" y="58" width="74" height="7" rx="3" fill="#e29a00" opacity=".5"/>
+        <circle cx="104" cy="25" r="4.5" fill="#6ff2c8"/><circle cx="150" cy="17" r="5" fill="#d6bcff"/><circle cx="196" cy="25" r="4.5" fill="#6ff2c8"/>
+      </g>
+
+      <!-- Evolución 4: aureola -->
+      <g class="evo evo-4"><ellipse class="halo" cx="150" cy="9" rx="36" ry="7" fill="none" stroke="#ffd23f" stroke-width="5" filter="url(#glow)"/></g>
+    </g><!-- /head -->
+
+    <!-- Collar y accesorios de cuello -->
+    <path d="M104 210 Q150 232 196 210" fill="none" stroke="#6ff2c8" stroke-width="8" stroke-linecap="round"/>
+    <g class="acc" data-acc="bow">
+      <path d="M150 224 L116 208 Q108 222 116 240 Z" fill="#8b5cf6" stroke="#5b2fd0" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M150 224 L184 208 Q192 222 184 240 Z" fill="#8b5cf6" stroke="#5b2fd0" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="150" cy="224" r="8" fill="#a78bfa" stroke="#5b2fd0" stroke-width="2.5"/>
+    </g>
+    <g class="acc" data-acc="scarf">
+      <path d="M100 208 Q150 238 200 208 L203 226 Q150 256 97 226 Z" fill="#5eead4" stroke="#1fb394" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M121 221 L123 238 M143 229 L144 246 M165 229 L166 246 M183 221 L181 238" stroke="#8b5cf6" stroke-width="4" stroke-linecap="round"/>
+      <path d="M176 238 L198 236 L204 278 L182 282 Z" fill="#5eead4" stroke="#1fb394" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M180 256 L201 254 M181 268 L203 266" stroke="#8b5cf6" stroke-width="4" stroke-linecap="round"/>
+    </g>
+
+    <!-- Evolución 4: destellos -->
+    <g class="evo evo-4" fill="#ffd23f">
+      <g transform="translate(28 100)"><path class="spark" d="M0 -10 L2.5 -2.5 L10 0 L2.5 2.5 L0 10 L-2.5 2.5 L-10 0 L-2.5 -2.5 Z"/></g>
+      <g transform="translate(276 118)"><path class="spark d2" d="M0 -10 L2.5 -2.5 L10 0 L2.5 2.5 L0 10 L-2.5 2.5 L-10 0 L-2.5 -2.5 Z"/></g>
+      <g transform="translate(34 248)"><path class="spark d3" d="M0 -10 L2.5 -2.5 L10 0 L2.5 2.5 L0 10 L-2.5 2.5 L-10 0 L-2.5 -2.5 Z"/></g>
+      <g transform="translate(272 168)"><path class="spark d4" d="M0 -8 L2 -2 L8 0 L2 2 L0 8 L-2 2 L-8 0 L-2 -2 Z"/></g>
+    </g>
+
+    <!-- Zzz mientras recarga -->
+    <g class="zzz" fill="#7c4dff" font-family="Fredoka, system-ui, sans-serif" font-weight="700">
+      <text x="226" y="80" font-size="22">Z</text><text x="244" y="58" font-size="17">Z</text><text x="258" y="40" font-size="13">Z</text>
+    </g>
+
+  </g><!-- /body-bob -->
+  </g><!-- /grow -->
+</svg>
+<!-- ================ /GATITO ROBOT ================ -->
+
+          </div>
+          <div class="particles" id="particles"></div>
+          <div class="play-layer" id="playLayer" hidden>
+            <div class="game-hud"><span id="hudTime">30 s</span><span id="hudScore">🪙 0 puntos</span><span id="hudLives">❤️❤️❤️</span></div>
+          </div>
+        </div>
+
+        <div class="game-controls" id="gameControls" aria-hidden="true"><button type="button" id="moveLeft" aria-label="Mover a Rumi a la izquierda">⬅️</button><button type="button" id="moveRight" aria-label="Mover a Rumi a la derecha">➡️</button></div>
+
+        <div class="meters">
+          <div class="meter happy" id="happyMeter">
+            <div class="meter-top">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 C5 15.5 2 12 2 8.5 A5 5 0 0 1 12 6.5 A5 5 0 0 1 22 8.5 C22 12 19 15.5 12 21Z"/></svg>
+              <span>Felicidad</span><span class="val" id="happyVal">70%</span>
+            </div>
+            <div class="bar bar-happy" id="happyBar" role="progressbar" aria-label="Felicidad" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><span class="fill" id="happyFill"></span></div>
+          </div>
+          <div class="meter energy" id="energyMeter">
+            <div class="meter-top">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 L4 14 h6 l-1 8 9-12 h-6 z"/></svg>
+              <span>Energía</span><span class="val" id="energyVal">80%</span>
+            </div>
+            <div class="bar bar-energy" id="energyBar" role="progressbar" aria-label="Energía" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80"><span class="fill" id="energyFill"></span></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-violet" id="playBtn" type="button">🎮 Jugar</button>
+          <button class="btn btn-mint" id="sleepBtn" type="button">🔋 Recargar</button>
+        </div>
+        <p class="hint">Tocalo para saludar. Mantené apretado y deslizá el dedo para acariciarlo.</p>
+      </section>
+
+      <section class="mission-panel" aria-labelledby="missionTitle">
+        <h2 id="missionTitle">🎯 Misiones de hoy</h2>
+        <p class="mission-sub" id="missionSummary">Completá las tres misiones para ganar experiencia. Se renuevan cada día.</p>
+        <div class="mission-list" id="missionList"></div>
+        <div class="record-pill" id="recordPill">🏆 Récord: 0 puntos</div>
+      </section>
+      <section class="tip" aria-labelledby="tipTitle">
+        <svg class="tip-coin" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#ffc83d" stroke="#c98400" stroke-width="2"/><circle cx="16" cy="16" r="10" fill="none" stroke="#b87800" stroke-width="1.4" opacity=".55"/><text x="16" y="22" text-anchor="middle" font-family="Fredoka, system-ui, sans-serif" font-weight="700" font-size="16" fill="#8a5a00">R</text></svg>
+        <div>
+          <h2 class="sr-only" id="tipTitle">Consejo financiero</h2>
+          <p class="tip-text" id="tipText"></p>
+        </div>
+        <div class="tip-foot">
+          <p class="tip-note">Consejos generales, no son asesoramiento financiero.</p>
+          <button class="btn btn-line btn-sm" id="tipBtn" type="button">💡 Otro consejo</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== COLUMNA DERECHA ===================== -->
+    <aside class="side">
+
+      <section aria-labelledby="goalsTitle">
+        <h2 id="goalsTitle">Metas de ahorro</h2>
+
+        <div class="evo-head">
+          <span class="evo-pct" id="evoPct">0%</span>
+          <span class="evo-desc" id="evoDesc">Aún no tenés metas</span>
+        </div>
+        <div class="bar bar-evo" id="evoBar" role="progressbar" aria-label="Progreso total de tus metas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span class="fill" id="evoFill"></span><i class="tick" style="left:25%"></i><i class="tick" style="left:60%"></i>
+        </div>
+        <div class="evo-marks" id="evoMarks" aria-hidden="true"></div>
+        <p class="evo-next" id="evoNext"></p>
+
+        <ul class="goals" id="goalsList"></ul>
+        <p class="empty" id="goalsEmpty">Todavía no creaste ninguna meta. Creá la primera y Rumi empezará a evolucionar con tu ahorro.</p>
+
+        <div class="new-goal">
+          <h3>Nueva meta</h3>
+          <div class="new-goal-row">
+            <input class="field" id="goalName" type="text" maxlength="40" placeholder="Nombre, por ejemplo: Viaje" aria-label="Nombre de la meta" autocomplete="off">
+            <input class="field" id="goalTarget" type="number" inputmode="decimal" min="0" step="any" placeholder="Monto objetivo" aria-label="Monto objetivo">
+            <button class="btn btn-violet btn-sm" id="goalBtn" type="button">Crear meta</button>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="accTitle">
+        <h2 id="accTitle">Accesorios</h2>
+        <p class="acc-hint" id="accHint"></p>
+        <div class="acc-grid" id="accGrid"></div>
+      </section>
+
+    </aside>
+  </div>
+
+  <div class="foot"><button class="text-btn" id="resetBtn" type="button">Reiniciar progreso</button></div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<noscript>Rumi necesita JavaScript para funcionar.</noscript>
+<script>
+(() => {
+'use strict';
+
+/* =========================================================
+   CONFIGURACIÓN (todo lo ajustable está acá)
+   ========================================================= */
+const CFG = {
+  KEY: 'rumbit.mascota.v1',
+  MAX_LEVEL: 10,
+  HAPPY_DECAY: 1 / 45,          // puntos de felicidad que baja por segundo
+  ENERGY_DECAY: 1 / 60,         // puntos de energía que baja por segundo
+  RECHARGE: 4,                  // energía que sube por segundo mientras recarga
+  OFFLINE_MAX: 12 * 3600,       // máximo de tiempo "ausente" que se tiene en cuenta
+  OFFLINE_HAPPY_MIN: 20,        // estando ausente, no baja de este valor
+  OFFLINE_ENERGY_MIN: 15,
+  PLAY_COST: 15,                // energía que cuesta una partida
+  PLAY_SECONDS: 30,
+  COIN_EVERY_MS: 590,
+  COIN_LIFE_MS: 1600,
+  MAX_GOALS: 20,
+  MAX_AMOUNT: 1e9,
+};
+
+// Evolución según el % total de ahorro de las metas
+const STAGES = [
+  { id: 1, name: 'Bit',        min: 0 },
+  { id: 2, name: 'Byte',       min: 25 },
+  { id: 3, name: 'Mega',       min: 60 },
+  { id: 4, name: 'Legendario', min: 100 },
+];
+
+// Accesorios que se desbloquean al subir de nivel (un solo accesorio por espacio)
+const ACCESSORIES = [
+  { id: 'bow',     name: 'Lazo violeta',     slot: 'neck', level: 2, icon: '🎀' },
+  { id: 'scarf',   name: 'Bufanda menta',    slot: 'neck', level: 3, icon: '🧣' },
+  { id: 'glasses', name: 'Anteojos',         slot: 'face', level: 4, icon: '👓' },
+  { id: 'tophat',  name: 'Sombrero de copa', slot: 'head', level: 5, icon: '🎩' },
+  { id: 'crown',   name: 'Corona dorada',    slot: 'head', level: 7, icon: '👑' },
+];
+const SLOTS = ['neck', 'face', 'head'];
+
+const TIPS = [
+  'Ahorrar un poquito cada día vale más que mucho una sola vez. ¡La constancia gana!',
+  'Antes de comprar, preguntate: ¿lo necesito o lo quiero? Una pausa corta puede ahorrarte mucho.',
+  'Ponele nombre a tu meta. Un objetivo con nombre es más difícil de abandonar.',
+  'Apartá una parte de cada ingreso apenas lo recibís, antes de empezar a gastar.',
+  'Un fondo de emergencia te da tranquilidad. Un buen primer objetivo es cubrir unos meses de gastos básicos.',
+  'Revisá tus gastos chicos y repetidos: suman más de lo que parece.',
+  'Dividí una meta grande en metas pequeñas. ¡Cada paso cuenta!',
+  'Celebrá tus avances, por chiquitos que sean. Lo que se celebra, se repite.',
+  'Esperá 24 horas antes de una compra no planificada. Muchas veces el antojo se va solo.',
+  'Automatizá tu ahorro: lo que no ves, no lo gastás.',
+  'Comparar precios antes de comprar es ahorrar sin esfuerzo.',
+  'Anotá en qué gastás. Lo que se mide, se puede mejorar.',
+  'No hace falta empezar con mucho. Lo importante es empezar.',
+  'Si un mes no llegaste a tu meta, no pasa nada: retomá el siguiente. ¡Vos podés!',
+  'Cuando terminás de pagar una deuda, seguí apartando ese mismo monto para tus metas.',
+];
+
+const TAP_LINES = ['¡Hola! Qué bueno verte.', '¡Miau digital!', 'Beep boop… ¡me encanta que me toques!', '¡Eso me hizo cosquillas!', '¿Jugamos o ahorramos?', 'Listo para ahorrar con vos.'];
+const PET_LINES = ['Purrr… qué lindo.', 'Más mimos, por favor.', 'Mi motor ronronea de felicidad.', 'Así, así… ¡me encanta!', 'Qué manos tan suaves.'];
+const REACTIONS = {
+  goalCreated: ['¡Una meta nueva! Ahora tenemos una misión importante. 🐾', '¡Me encantan los planes! Vamos a ahorrar de a poquito.', '¡Objetivo detectado! Activando modo ahorro.'],
+  deposited: ['¡Un pasito más cerca! ¡Bien ahí!', '¡Ese aporte suma! Estoy haciendo cuentas con mis patitas.', '¡Me encanta verte avanzar hacia tus objetivos!'],
+  completed: ['¡META CUMPLIDA! ¡Esto merece una fiesta! 🎉', '¡Lo logramos! Mi procesador está lleno de orgullo.', '¡Misión completada! ¿Vamos por la siguiente?'],
+  goodGame: ['¡Qué reflejos! Esas monedas no tenían escapatoria.', '¡Bien jugado! Guardar monedas virtuales también requiere práctica.', '¡Un equipo imparable! Vos movés, yo atrapo.'],
+  badGame: ['¡No pasa nada! La próxima partida nos sale mejor.', '¡Uy! Mi radar de monedas necesita entrenamiento.', '¡Revancha! Aprender también es parte del juego.'],
+  tips: ['¡Consejo desbloqueado! El conocimiento también suma.', '¡Dato financiero del día! Guardalo en tu memoria.', '¡Un buen hábito empieza con una buena idea!'],
+};
+const MISSIONS = [
+  {id:'tip',title:'Aprendé algo nuevo',detail:'Consultá un consejo financiero',xp:12,icon:'💡'},
+  {id:'play',title:'Jugá con Rumi',detail:'Terminá una partida de monedas',xp:15,icon:'🪙'},
+  {id:'save',title:'Avanzá en una meta',detail:'Registrá un aporte de ahorro',xp:20,icon:'🎯'},
+];
+const IDLE_LINES = ['¡Miau! ¿Revisamos cómo van tus metas?', 'Si hoy ahorraste algo, aunque sea poquito, ya avanzaste.', 'Estoy cuidando tus metas mientras vos seguís con tu día.', 'Cada ahorro, por pequeño que sea, suma.', 'Hoy es un buen día para apartar un poquito.', 'Las metas se cumplen de a un paso por vez.', 'Estoy contento de acompañarte.', 'Ahorrar tiene más sentido con un objetivo claro.', 'La constancia es mi moneda favorita.'];
+const HEART_COLORS = ['#a78bfa', '#7c4dff', '#2fd6a0', '#c4a6ff'];
+const SPARK_COLORS = ['#ffc83d', '#a78bfa', '#2fd6a0', '#7c4dff'];
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const uid = () => Math.random().toString(36).slice(2, 9);
+const nf = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 });
+const money = (n) => '$ ' + nf.format(n);
+const xpNeeded = (lvl) => 30 + 20 * (lvl - 1);
+const plural = (n, one, many) => (n === 1 ? one : many);
+
+function h(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') n.className = v;
+    else if (k === 'text') n.textContent = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2).toLowerCase(), v);
+    else n.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid != null) n.append(kid);
+  return n;
+}
+
+function parseAmount(v) {
+  const n = Number(String(v).replace(',', '.'));
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+}
+
+/* =========================================================
+   ALMACENAMIENTO (localStorage, con respaldo en memoria)
+   ========================================================= */
+const store = (() => {
+  let persistent = true;
+  let mem = null;
+  try {
+    const k = '__rumbit_test__';
+    window.localStorage.setItem(k, '1');
+    window.localStorage.removeItem(k);
+  } catch (_) { persistent = false; }
+  return {
+    persistent,
+    load() {
+      try { if (persistent) return JSON.parse(window.localStorage.getItem(CFG.KEY)); } catch (_) {}
+      return mem;
+    },
+    save(obj) {
+      mem = JSON.parse(JSON.stringify(obj));
+      if (persistent) { try { window.localStorage.setItem(CFG.KEY, JSON.stringify(obj)); } catch (_) {} }
+    },
+    clear() {
+      mem = null;
+      if (persistent) { try { window.localStorage.removeItem(CFG.KEY); } catch (_) {} }
+    },
+  };
+})();
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+function defaultState() {
+  return {
+    v: 1,
+    happiness: 70,
+    energy: 80,
+    xp: 0,
+    level: 1,
+    stage: 1,
+    sleeping: false,
+    lastUpdate: Date.now(),
+    goals: [],                                  // { id, name, target, saved, rewarded }
+    bestScore: 0,
+    daily: {date: '', completed: []},
+    equipped: { neck: null, face: null, head: null },
+  };
+}
+
+function num(v, min, max, fallback) {
+  v = Number(v);
+  return Number.isFinite(v) ? clamp(v, min, max) : fallback;
+}
+
+// Valida lo que viene del almacenamiento para que datos dañados no rompan la app
+function sanitize(raw) {
+  const s = defaultState();
+  if (!raw || typeof raw !== 'object') return s;
+  s.happiness = num(raw.happiness, 0, 100, s.happiness);
+  s.energy = num(raw.energy, 0, 100, s.energy);
+  s.level = Math.round(num(raw.level, 1, CFG.MAX_LEVEL, 1));
+  s.xp = s.level >= CFG.MAX_LEVEL ? 0 : num(raw.xp, 0, xpNeeded(s.level) - 1, 0);
+  s.stage = Math.round(num(raw.stage, 1, STAGES.length, 1));
+  s.sleeping = raw.sleeping === true;
+  s.bestScore = Math.round(num(raw.bestScore, 0, 1000000, 0));
+  if (raw.daily && typeof raw.daily === 'object') {
+    s.daily.date = String(raw.daily.date || '').slice(0,10);
+    s.daily.completed = Array.isArray(raw.daily.completed) ? raw.daily.completed.filter(x=>MISSIONS.some(m=>m.id===x)).slice(0,3) : [];
+  }
+  s.lastUpdate = num(raw.lastUpdate, 0, Date.now(), Date.now());
+  if (Array.isArray(raw.goals)) {
+    s.goals = raw.goals.slice(0, CFG.MAX_GOALS).filter((g) => g && typeof g === 'object').map((g) => ({
+      id: String(g.id || uid()).slice(0, 20),
+      name: String(g.name || 'Meta').slice(0, 40),
+      target: num(g.target, 0.01, CFG.MAX_AMOUNT, 1),
+      saved: num(g.saved, 0, 1e12, 0),
+      rewarded: g.rewarded === true,
+    }));
+  }
+  for (const slot of SLOTS) {
+    const id = raw.equipped && raw.equipped[slot];
+    const acc = ACCESSORIES.find((a) => a.id === id && a.slot === slot && a.level <= s.level);
+    s.equipped[slot] = acc ? acc.id : null;
+  }
+  return s;
+}
+
+const savedRaw = store.load();
+const firstRun = !savedRaw;
+let state = sanitize(savedRaw);
+
+// Estado de interfaz (no se guarda)
+const ui = {
+  playing: false, play: null,
+  moodOverride: null, moodUntil: 0, moodTimer: null,
+  bubbleTimer: null, lastSay: 0, lastPetSay: 0, lastPetReward: 0, lastTapXp: 0, tapTimes: [],
+};
+
+/* =========================================================
+   REFERENCIAS AL DOM
+   ========================================================= */
+const petWrap = $('petWrap'), petEl = $('pet'), pupils = $('pupils');
+const particlesEl = $('particles'), playLayer = $('playLayer');
+const bubble = $('bubble'), bubbleText = $('bubbleText');
+const toastsEl = $('toasts');
+
+let saveTimer = null;
+function save(immediate = false) {
+  state.lastUpdate = Date.now();
+  clearTimeout(saveTimer);
+  if (immediate) store.save(state);
+  else saveTimer = setTimeout(() => store.save(state), 150);
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+function renderStats() {
+  const hp = Math.round(state.happiness), en = Math.round(state.energy);
+  $('happyFill').style.width = hp + '%';
+  $('happyVal').textContent = hp + '%';
+  $('happyBar').setAttribute('aria-valuenow', hp);
+  $('happyMeter').classList.toggle('low', hp < 25);
+  $('energyFill').style.width = en + '%';
+  $('energyVal').textContent = en + '%';
+  $('energyBar').setAttribute('aria-valuenow', en);
+  $('energyMeter').classList.toggle('low', en < 20);
+}
+
+function renderLevel() {
+  $('lvlN').textContent = state.level;
+  let pct = 100, label = 'Nivel máximo';
+  if (state.level < CFG.MAX_LEVEL) {
+    const need = xpNeeded(state.level);
+    pct = (state.xp / need) * 100;
+    label = `${Math.floor(state.xp)} / ${need} XP`;
+  }
+  $('xpFill').style.width = pct + '%';
+  $('xpText').textContent = label;
+  $('xpBar').setAttribute('aria-valuenow', Math.round(pct));
+}
+
+function currentMood() {
+  if (state.sleeping) return 'sleep';
+  if (ui.moodOverride && Date.now() < ui.moodUntil) return ui.moodOverride;
+  if (ui.playing) return 'happy';
+  if (state.energy < 20) return 'tired';
+  if (state.happiness < 25) return 'sad';
+  if (state.happiness >= 80) return 'happy';
+  return 'neutral';
+}
+function renderMood() {
+  const m = currentMood();
+  if (petEl.dataset.mood !== m) petEl.dataset.mood = m;
+}
+function setMood(mood, ms = 900) {
+  ui.moodOverride = mood;
+  ui.moodUntil = Date.now() + ms;
+  clearTimeout(ui.moodTimer);
+  ui.moodTimer = setTimeout(renderMood, ms + 30);
+  renderMood();
+}
+
+function renderButtons() {
+  $('playBtn').disabled = ui.playing;
+  $('sleepBtn').textContent = state.sleeping ? '☀️ Despertar' : '🔋 Recargar';
+}
+
+function getSavingsProgress() {
+  const goals = state.goals;
+  const target = goals.reduce((a, g) => a + g.target, 0);
+  const saved = goals.reduce((a, g) => a + Math.min(g.saved, g.target), 0);
+  return {
+    count: goals.length,
+    completed: goals.filter((g) => g.saved >= g.target).length,
+    pct: target > 0 ? (saved / target) * 100 : 0,
+  };
+}
+
+function stageForPct(pct) {
+  for (let i = STAGES.length - 1; i >= 0; i--) if (pct >= STAGES[i].min - 1e-9) return STAGES[i].id;
+  return 1;
+}
+
+function renderEvolution() {
+  const prog = getSavingsProgress();
+  const stage = STAGES[state.stage - 1];
+  for (let i = 2; i <= STAGES.length; i++) petEl.classList.toggle('s' + i, state.stage >= i);
+  $('stageNum').textContent = 'Etapa ' + stage.id;
+  $('stageName').textContent = stage.name;
+
+  const pct = clamp(prog.pct, 0, 100);
+  $('evoPct').textContent = Math.floor(pct) + '%';
+  $('evoFill').style.width = pct + '%';
+  $('evoBar').setAttribute('aria-valuenow', Math.floor(pct));
+  $('evoDesc').textContent = prog.count
+    ? `${prog.completed} de ${prog.count} ${plural(prog.count, 'meta cumplida', 'metas cumplidas')}`
+    : 'Aún no tenés metas';
+
+  const next = STAGES[state.stage];
+  $('evoNext').textContent = next
+    ? `Próxima evolución: ${next.name}, al llegar al ${next.min}% de tus ahorros.`
+    : '¡Rumi alcanzó su máxima evolución!';
+  document.querySelectorAll('.evo-mark').forEach((m) => m.classList.toggle('reached', Number(m.dataset.stage) <= state.stage));
+}
+
+function buildEvolutionMarks() {
+  const box = $('evoMarks');
+  for (const s of STAGES) {
+    const m = h('span', { class: 'evo-mark', text: s.name, 'data-stage': String(s.id) });
+    m.style.left = s.min + '%';
+    box.append(m);
+  }
+}
+
+function renderGoals() {
+  const list = $('goalsList');
+  list.replaceChildren();
+  $('goalsEmpty').hidden = state.goals.length > 0;
+
+  for (const g of state.goals) {
+    const pct = Math.min(100, (g.saved / g.target) * 100);
+    const done = g.saved >= g.target;
+
+    const del = h('button', { class: 'icon-btn', type: 'button', title: 'Eliminar meta', 'aria-label': `Eliminar la meta ${g.name}`, text: '✕' });
+    let armed = false, t = null;
+    del.addEventListener('click', () => {
+      if (!armed) {
+        armed = true; del.textContent = '¿Eliminar?'; del.classList.add('armed');
+        t = setTimeout(() => { armed = false; del.textContent = '✕'; del.classList.remove('armed'); }, 3000);
+        return;
+      }
+      clearTimeout(t);
+      removeGoal(g.id);
+    });
+
+    const bar = h('div', { class: 'bar', role: 'progressbar', 'aria-label': `Progreso de ${g.name}`, 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.floor(pct)) },
+      h('span', { class: 'fill' }));
+    bar.firstChild.style.width = pct + '%';
+
+    const li = h('li', { class: 'goal' + (done ? ' done' : '') },
+      h('div', { class: 'goal-head' }, h('span', { class: 'goal-name', text: g.name }), del),
+      h('div', { class: 'goal-nums' }, h('span', { text: `${money(g.saved)} de ${money(g.target)}` }), h('span', { text: Math.floor(pct) + '%' })),
+      bar
+    );
+
+    if (done) {
+      li.append(h('p', { class: 'goal-done', text: '¡Meta cumplida!' }));
+    } else {
+      const input = h('input', { class: 'field', type: 'number', inputmode: 'decimal', min: '0', step: 'any', placeholder: 'Monto a ahorrar', 'aria-label': `Monto a ahorrar en ${g.name}` });
+      const go = () => {
+        const amount = parseAmount(input.value);
+        if (!(amount > 0)) { toast('Ingresá un monto mayor a 0.', 'warn'); input.focus(); return; }
+        if (amount > CFG.MAX_AMOUNT) { toast('Ese monto es demasiado alto.', 'warn'); input.focus(); return; }
+        addDeposit(g.id, amount);
+      };
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+      li.append(h('div', { class: 'goal-add' }, input, h('button', { class: 'btn btn-mint btn-sm', type: 'button', text: 'Ahorrar', onClick: go })));
+    }
+    list.append(li);
+  }
+}
+
+function renderAccessories() {
+  const grid = $('accGrid');
+  grid.replaceChildren();
+  for (const a of ACCESSORIES) {
+    const unlocked = state.level >= a.level;
+    const equipped = state.equipped[a.slot] === a.id;
+    const props = { class: 'acc' + (equipped ? ' on' : '') + (unlocked ? '' : ' locked'), type: 'button', 'aria-disabled': String(!unlocked) };
+    if (unlocked) props['aria-pressed'] = String(equipped);
+    const btn = h('button', props,
+      h('span', { class: 'acc-icon', text: unlocked ? a.icon : '🔒' }),
+      h('span', { class: 'acc-name', text: a.name }),
+      h('span', { class: 'acc-state', text: !unlocked ? `Nivel ${a.level}` : equipped ? 'Puesto' : 'Poner' }));
+    btn.addEventListener('click', () => toggleAccessory(a));
+    grid.append(btn);
+  }
+  const nextAcc = ACCESSORIES.find((a) => a.level > state.level);
+  $('accHint').textContent = nextAcc
+    ? `Próximo accesorio: ${nextAcc.name}, en el nivel ${nextAcc.level}. Subí de nivel jugando, acariciando y ahorrando.`
+    : 'Desbloqueaste todos los accesorios.';
+  const worn = Object.values(state.equipped);
+  document.querySelectorAll('[data-acc]').forEach((n) => n.classList.toggle('on', worn.includes(n.dataset.acc)));
+}
+
+function localDay() {
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function ensureDaily() {
+  const today=localDay();
+  if(state.daily.date!==today){state.daily={date:today,completed:[]};save();}
+}
+function renderMissions() {
+  ensureDaily();
+  const list=$('missionList');
+  list.replaceChildren();
+  for(const m of MISSIONS){
+    const done=state.daily.completed.includes(m.id);
+    list.append(h('div',{class:'mission-item'+(done?' done':'')},
+      h('span',{class:'mission-icon',text:done?'✓':m.icon}),
+      h('div',{class:'mission-info'},h('strong',{text:m.title}),h('small',{text:m.detail})),
+      h('span',{class:'mission-xp',text:done?'Completada':`+${m.xp} XP`})));
+  }
+  $('missionSummary').textContent=`${state.daily.completed.length} de 3 completadas · Se renuevan cada día.`;
+  $('recordPill').textContent=`🏆 Récord: ${state.bestScore} puntos`;
+}
+function completeMission(id){
+  ensureDaily();
+  const m=MISSIONS.find(x=>x.id===id);
+  if(!m||state.daily.completed.includes(id))return;
+  state.daily.completed.push(id);
+  renderMissions();
+  addXP(m.xp);
+  toast(`¡Misión completada: ${m.title}! +${m.xp} XP`,'unlock');
+  if(state.daily.completed.length===3){celebrate();toast('¡Completaste las 3 misiones de hoy! 🎉','level',5000);}
+  save();
+}
+function showEvolution(st){
+  const layer=h('div',{class:'evo-flash','aria-live':'polite'},h('div',{class:'evo-flash-card'},
+    h('span',{class:'star',text:st.id===4?'👑':'✨'}),
+    h('strong',{text:`¡Rumi evolucionó!`}),
+    h('span',{text:`Nueva etapa: ${st.name}`})));
+  document.body.append(layer);
+  setTimeout(()=>layer.remove(),2800);
+}
+function renderAll() {
+  renderStats(); renderLevel(); renderEvolution(); renderGoals(); renderAccessories(); renderButtons(); renderMood(); renderMissions();
+}
+
+/* =========================================================
+   MENSAJES, TOASTS Y PARTÍCULAS
+   ========================================================= */
+function idleMessage() {
+  if (state.sleeping) return 'Zzz… recargando batería.';
+  if (state.energy < 20) return 'Tengo poca batería. ¿Me dejás recargar?';
+  if (state.happiness < 25) return 'Me siento solito… ¿jugamos un rato?';
+  if (!state.goals.length) return 'Creá tu primera meta de ahorro y evolucionemos juntos.';
+  return pick(IDLE_LINES);
+}
+
+function say(text, ms = 5000) {
+  bubbleText.textContent = text;
+  bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
+  ui.lastSay = Date.now();
+  clearTimeout(ui.bubbleTimer);
+  ui.bubbleTimer = setTimeout(() => { bubbleText.textContent = idleMessage(); ui.lastSay = Date.now(); }, ms);
+}
+
+function toast(msg, kind = 'info', ms = 3800) {
+  const t = h('div', { class: 'toast ' + kind, role: 'status', text: msg });
+  toastsEl.append(t);
+  while (toastsEl.children.length > 3) toastsEl.firstChild.remove();
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, ms);
+}
+
+function spawnParticle(glyph, x, y, color) {
+  const p = h('span', { class: 'particle', text: glyph, 'aria-hidden': 'true' });
+  p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.color = color;
+  p.style.setProperty('--dx', rand(-40, 40).toFixed(0) + 'px');
+  p.style.setProperty('--rot', rand(-30, 30).toFixed(0) + 'deg');
+  particlesEl.append(p);
+  p.addEventListener('animationend', () => p.remove());
+  setTimeout(() => p.remove(), 1700);
+}
+
+const animTimers = {};
+function playAnim(name, ms = 900) {
+  petWrap.classList.remove(name); void petWrap.offsetWidth; petWrap.classList.add(name);
+  clearTimeout(animTimers[name]);
+  animTimers[name] = setTimeout(() => petWrap.classList.remove(name), ms);
+}
+
+function celebrate(skipJump = false) {
+  if (!skipJump) playAnim('jump', 900);
+  const r = particlesEl.getBoundingClientRect();
+  for (let i = 0; i < 16; i++) {
+    setTimeout(() => spawnParticle(pick(['✦', '♥', '✧', '★']), r.width * rand(0.2, 0.8), r.height * rand(0.3, 0.75), pick(SPARK_COLORS)), i * 60);
+  }
+}
+
+/* =========================================================
+   EXPERIENCIA, NIVELES Y ACCESORIOS
+   ========================================================= */
+function addXP(n) {
+  if (n <= 0 || state.level >= CFG.MAX_LEVEL) return;
+  state.xp += n;
+  const reached = [];
+  while (state.level < CFG.MAX_LEVEL && state.xp >= xpNeeded(state.level)) {
+    state.xp -= xpNeeded(state.level);
+    state.level++;
+    reached.push(state.level);
+  }
+  if (state.level >= CFG.MAX_LEVEL) state.xp = 0;
+  if (reached.length) onLevelUp(reached);
+  renderLevel();
+  save();
+}
+
+function onLevelUp(levels) {
+  const lvl = levels[levels.length - 1];
+  toast(`¡Rumi subió al nivel ${lvl}!`, 'level');
+  const unlocked = ACCESSORIES.filter((a) => levels.includes(a.level));
+  for (const a of unlocked) {
+    toast(`Accesorio desbloqueado: ${a.name} ${a.icon}`, 'unlock', 4800);
+    if (!state.equipped[a.slot]) state.equipped[a.slot] = a.id;   // se lo pone solo si el espacio estaba libre
+  }
+  renderAccessories();
+  celebrate();
+  setMood('love', 1800);
+  say(unlocked.length ? `¡Nivel ${lvl}! Mirá lo que desbloqueé: ${unlocked[0].name}.` : `¡Subí al nivel ${lvl}! Gracias por cuidarme.`, 6500);
+}
+
+function toggleAccessory(a) {
+  if (state.level < a.level) {
+    say(`Ese accesorio lo desbloqueo en el nivel ${a.level}. ¡Seguí jugando conmigo!`, 4500);
+    setMood('wink', 900);
+    return;
+  }
+  const wearing = state.equipped[a.slot] === a.id;
+  state.equipped[a.slot] = wearing ? null : a.id;
+  renderAccessories();
+  playAnim('bounce', 500);
+  setMood(wearing ? 'surprised' : 'happy', 1200);
+  say(wearing ? `Me quité: ${a.name}.` : `Me puse: ${a.name}. ¿Cómo me queda?`, 3500);
+  save();
+}
+
+/* =========================================================
+   EVOLUCIÓN POR AHORRO
+   ========================================================= */
+function checkEvolution(silent = false) {
+  const prog = getSavingsProgress();
+  const target = prog.count > 0 ? stageForPct(prog.pct) : 1;
+  if (target > state.stage) {            // la evolución nunca retrocede
+    state.stage = target;
+    renderEvolution();
+    save();
+    if (!silent) {
+      const st = STAGES[target - 1];
+      playAnim('evolve', 1500);
+      showEvolution(st);
+      celebrate(true);
+      setMood('love', 2500);
+      toast(`¡Rumi evolucionó a ${st.name}!`, 'level', 5200);
+      say(`¡Evolucioné! Ahora soy ${st.name}. Gracias por ahorrar.`, 7000);
+    }
+  }
+}
+
+function createGoal() {
+  const nameEl = $('goalName'), targetEl = $('goalTarget');
+  const name = nameEl.value.trim().replace(/\s+/g, ' ');
+  const target = parseAmount(targetEl.value);
+  if (!name) { toast('Poné un nombre a tu meta.', 'warn'); nameEl.focus(); return; }
+  if (!(target > 0)) { toast('Ingresá un monto objetivo mayor a 0.', 'warn'); targetEl.focus(); return; }
+  if (target > CFG.MAX_AMOUNT) { toast('Ese monto es demasiado alto.', 'warn'); targetEl.focus(); return; }
+  if (state.goals.length >= CFG.MAX_GOALS) { toast(`Llegaste al máximo de ${CFG.MAX_GOALS} metas.`, 'warn'); return; }
+  state.goals.push({ id: uid(), name: name.slice(0, 40), target, saved: 0, rewarded: false });
+  nameEl.value = ''; targetEl.value = '';
+  renderGoals(); renderEvolution(); save();
+  setMood('happy', 1500);
+  say(pick(REACTIONS.goalCreated)+` (${name})`, 5000);
+  toast('Meta creada');
+}
+
+function addDeposit(id, amount) {
+  const g = state.goals.find((x) => x.id === id);
+  if (!g) return;
+  g.saved = Math.round((g.saved + amount) * 100) / 100;
+  state.happiness = clamp(state.happiness + 10, 0, 100);
+  let xp = 15;
+  const justCompleted = !g.rewarded && g.saved >= g.target;
+  if (justCompleted) { g.rewarded = true; xp += 100; }
+
+  toast(`Ahorraste ${money(amount)} en "${g.name}"`);
+  setMood('love', 1500);
+  say(pick(justCompleted?REACTIONS.completed:REACTIONS.deposited), 5000);
+  if (justCompleted) { toast(`¡Meta cumplida: ${g.name}!`, 'unlock', 4800); celebrate(); }
+
+  renderGoals(); renderEvolution(); renderStats();
+  addXP(xp);
+  completeMission('save');
+  checkEvolution();      // al final, para que su mensaje sea el que se vea
+  save();
+}
+
+function removeGoal(id) {
+  state.goals = state.goals.filter((g) => g.id !== id);
+  renderGoals(); renderEvolution(); save();
+  say('Meta eliminada. Cuando quieras, creamos otra.', 4000);
+}
+
+/* =========================================================
+   TIEMPO: baja de felicidad/energía y recarga
+   ========================================================= */
+function applyElapsed(sec, offline) {
+  let woke = false;
+  if (state.sleeping) {
+    state.energy = Math.min(100, state.energy + CFG.RECHARGE * sec);
+    if (state.energy >= 100) { state.sleeping = false; woke = true; }
+  } else {
+    const hMin = offline ? Math.min(state.happiness, CFG.OFFLINE_HAPPY_MIN) : 0;
+    const eMin = offline ? Math.min(state.energy, CFG.OFFLINE_ENERGY_MIN) : 0;
+    state.happiness = Math.max(hMin, state.happiness - CFG.HAPPY_DECAY * sec);
+    state.energy = Math.max(eMin, state.energy - CFG.ENERGY_DECAY * sec);
+  }
+  return woke;
+}
+
+let lastTick = Date.now(), tickCount = 0;
+function tick() {
+  const now = Date.now();
+  const dt = (now - lastTick) / 1000;
+  lastTick = now;
+  if (dt <= 0) return;
+  const offline = dt > 60;                      // la pestaña estuvo dormida
+  const woke = applyElapsed(Math.min(dt, CFG.OFFLINE_MAX), offline);
+  if (woke) {
+    if (offline) { say('¡Me recargué por completo mientras no estabas!', 6000); }
+    else {
+      addXP(5); setMood('happy', 2200);
+      say('¡Batería al 100%! Gané 5 XP.', 4500);
+      toast('Batería completa: +5 XP');
+    }
+  }
+  renderStats(); renderMood(); renderButtons();
+  if (++tickCount % 10 === 0) { ensureDaily(); renderMissions(); save(); }
+  if (!ui.playing && Date.now() - ui.lastSay > 30000) { bubbleText.textContent = idleMessage(); ui.lastSay = Date.now(); }
+}
+
+/* =========================================================
+   INTERACCIONES: tocar y acariciar
+   ========================================================= */
+function lookAt(cx, cy) {
+  const r = petEl.getBoundingClientRect();
+  if (!r.width) return;
+  const ex = r.left + r.width * 0.5, ey = r.top + r.height * (136 / 330);
+  const dx = cx - ex, dy = cy - ey;
+  const dist = Math.hypot(dx, dy) || 1;
+  const k = Math.min(1, dist / 220);
+  pupils.style.transform = `translate(${((dx / dist) * k * 5.5).toFixed(1)}px, ${((dy / dist) * k * 4.5).toFixed(1)}px)`;
+}
+window.addEventListener('pointermove', (e) => lookAt(e.clientX, e.clientY), { passive: true });
+
+function tap(clientX, clientY) {
+  if (state.sleeping) { say('Shhh… estoy recargando. Tocá "Despertar" cuando quieras.', 3500); return; }
+  playAnim('bounce', 500);
+  const now = Date.now();
+  ui.tapTimes = ui.tapTimes.filter((t) => now - t < 3000);
+  ui.tapTimes.push(now);
+  state.happiness = clamp(state.happiness + 2, 0, 100);
+  if (now - ui.lastTapXp > 1500) { ui.lastTapXp = now; addXP(1); }
+
+  const r = particlesEl.getBoundingClientRect();
+  spawnParticle('♥', clientX - r.left, clientY - r.top, pick(HEART_COLORS));
+
+  if (ui.tapTimes.length >= 7) { setMood('wink', 1200); say('¡Jajaja, me hacés cosquillas!', 3000); }
+  else { setMood(Math.random() < 0.5 ? 'surprised' : 'wink', Math.random() < 0.5 ? 600 : 900); say(pick(TAP_LINES), 3000); }
+  renderStats(); save();
+}
+
+function petReward() {
+  const now = Date.now();
+  if (now - ui.lastPetReward < 700) return;      // evita ganar XP frotando a toda velocidad
+  ui.lastPetReward = now;
+  const before = state.happiness;
+  state.happiness = clamp(state.happiness + 3, 0, 100);
+  addXP(1);
+  renderStats(); save();
+  if (now - ui.lastPetSay > 2800) {
+    ui.lastPetSay = now;
+    say(before < 100 && state.happiness >= 100 ? '¡Felicidad al máximo!' : pick(PET_LINES), 2600);
+  }
+}
+
+const ptr = { down: false, id: null, lx: 0, ly: 0, total: 0, petting: false, acc: 0, heart: 0, lastMood: 0 };
+
+petWrap.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  Object.assign(ptr, { down: true, id: e.pointerId, lx: e.clientX, ly: e.clientY, total: 0, petting: false, acc: 0, heart: 0 });
+  try { petWrap.setPointerCapture(e.pointerId); } catch (_) {}
+});
+
+petWrap.addEventListener('pointermove', (e) => {
+  if (!ptr.down || e.pointerId !== ptr.id) return;
+  const d = Math.hypot(e.clientX - ptr.lx, e.clientY - ptr.ly);
+  ptr.lx = e.clientX; ptr.ly = e.clientY; ptr.total += d;
+  if (state.sleeping) return;
+  if (!ptr.petting) {
+    if (ptr.total <= 14) return;                 // todavía puede ser un toque
+    ptr.petting = true; petWrap.classList.add('petting');
+  }
+  ptr.acc += d; ptr.heart += d;
+  const now = performance.now();
+  if (now - ptr.lastMood > 250) { ptr.lastMood = now; setMood('love', 700); }
+  if (ptr.heart >= 75) {
+    ptr.heart = 0;
+    const r = particlesEl.getBoundingClientRect();
+    spawnParticle('♥', e.clientX - r.left, e.clientY - r.top, pick(HEART_COLORS));
+  }
+  if (ptr.acc >= 180) { ptr.acc = 0; petReward(); }
+});
+
+function endPointer(e) {
+  if (!ptr.down || e.pointerId !== ptr.id) return;
+  ptr.down = false;
+  petWrap.classList.remove('petting');
+  if (e.type === 'pointerup') {
+    if (!ptr.petting && ptr.total <= 14) tap(e.clientX, e.clientY);
+    else if (state.sleeping) say('Shhh… estoy recargando.', 3000);
+  }
+  ptr.petting = false;
+}
+petWrap.addEventListener('pointerup', endPointer);
+petWrap.addEventListener('pointercancel', endPointer);
+
+petWrap.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    const r = petWrap.getBoundingClientRect();
+    tap(r.left + r.width / 2, r.top + r.height * 0.4);
+  }
+});
+
+/* =========================================================
+   JUGAR: mover a Rumi para atrapar monedas que caen
+   ========================================================= */
+function gamePosition(x) {
+  if (!ui.playing) return;
+  ui.play.x = clamp(x, .12, .88);
+  ui.play.player.style.left = (ui.play.x * 100) + '%';
+}
+function gameMove(direction) {
+  if (ui.playing) gamePosition(ui.play.x + direction * .095);
+}
+function gamePointer(e) {
+  if (!ui.playing) return;
+  const r = playLayer.getBoundingClientRect();
+  gamePosition((e.clientX - r.left) / r.width);
+}
+playLayer.addEventListener('pointerdown', gamePointer);
+playLayer.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') gamePointer(e); });
+window.addEventListener('keydown', e => {
+  if (!ui.playing || !['ArrowLeft','ArrowRight'].includes(e.key)) return;
+  e.preventDefault();
+  gameMove(e.key === 'ArrowLeft' ? -1 : 1);
+});
+for (const [id,dir] of [['moveLeft',-1],['moveRight',1]]) {
+  const btn = $(id);
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); gameMove(dir); });
+  btn.addEventListener('click', e => { if (e.detail === 0) gameMove(dir); });
+}
+function spawnFallingCoin() {
+  if (!ui.playing) return;
+  const bad = Math.random() < .22;
+  const el = h('div', { class: 'game-drop ' + (bad ? 'bad' : 'good'), text: bad ? '💸' : 'R', 'aria-hidden':'true' });
+  playLayer.append(el);
+  ui.play.drops.push({ el, x: rand(.07,.93), y: -28, speed: rand(120,190), bad });
+}
+function updateGameHud() {
+  if (!ui.playing) return;
+  const p = ui.play;
+  $('hudTime').textContent = Math.max(0,Math.ceil(p.remaining)) + ' s';
+  $('hudScore').textContent = '🪙 ' + p.score + ' puntos';
+  $('hudLives').textContent = '❤️'.repeat(p.lives) + '🖤'.repeat(3-p.lives);
+}
+function gameFrame(now) {
+  if (!ui.playing) return;
+  const p = ui.play;
+  if (!p.last) p.last = now;
+  const dt = Math.min((now-p.last)/1000,.06);
+  p.last = now;
+  p.remaining -= dt;
+  p.spawnElapsed += dt;
+  if (p.spawnElapsed >= CFG.COIN_EVERY_MS/1000) { p.spawnElapsed = 0; spawnFallingCoin(); }
+  const w = playLayer.clientWidth, hgt = playLayer.clientHeight;
+  const catchY = hgt - 60;
+  p.drops = p.drops.filter(d => {
+    d.y += d.speed * dt;
+    d.el.style.left = (d.x*100) + '%';
+    d.el.style.top = d.y + 'px';
+    if (Math.abs(d.x-p.x)*w < 43 && Math.abs(d.y-catchY) < 29) {
+      d.el.remove();
+      if (d.bad) {
+        p.lives--;
+        setMood('surprised',600);
+      } else {
+        p.score += 10;
+        p.coins++;
+        const r=particlesEl.getBoundingClientRect();
+        spawnParticle('+10',d.x*w,Math.max(30,d.y), '#d49b00');
+      }
+      return false;
+    }
+    if (d.y > hgt + 25) { d.el.remove(); return false; }
+    return true;
+  });
+  updateGameHud();
+  if (p.remaining <= 0 || p.lives <= 0) { endPlay(); return; }
+  p.raf = requestAnimationFrame(gameFrame);
+}
+function startPlay() {
+  if (ui.playing) return;
+  if (state.sleeping) { say('Estoy recargando. Despertame primero para jugar.',4000); return; }
+  if (state.energy < CFG.PLAY_COST) {
+    say('Estoy sin batería para jugar. ¡Dejame recargar un rato!',4500);
+    setMood('tired',1500);
+    return;
+  }
+  ui.playing = true;
+  const player = h('div',{class:'game-player','aria-hidden':'true'});
+  // Reutilizamos el SVG original para que el personaje del juego sea Rumi.
+  const clone = petEl.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  clone.setAttribute('data-mood','happy');
+  player.append(clone);
+  playLayer.append(player);
+  ui.play = {score:0,coins:0,lives:3,remaining:CFG.PLAY_SECONDS,x:.5,player,drops:[],last:0,spawnElapsed:0,raf:0};
+  $('petArea').classList.add('game-active');
+  $('gameControls').setAttribute('aria-hidden','false');
+  playLayer.hidden = false;
+  gamePosition(.5);
+  renderButtons();renderMood();updateGameHud();
+  say('¡Moveme para atrapar las monedas! Esquivá los gastos sorpresa 💸',5000);
+  spawnFallingCoin();
+  ui.play.raf=requestAnimationFrame(gameFrame);
+}
+function endPlay(abort=false) {
+  if (!ui.playing) return;
+  const p=ui.play;
+  cancelAnimationFrame(p.raf);
+  p.drops.forEach(d=>d.el.remove());
+  p.player.remove();
+  ui.play=null;ui.playing=false;
+  playLayer.hidden=true;
+  $('petArea').classList.remove('game-active');
+  $('gameControls').setAttribute('aria-hidden','true');
+  if (abort) {renderButtons();renderMood();return;}
+  state.energy=Math.max(0,state.energy-CFG.PLAY_COST);
+  state.happiness=clamp(state.happiness+Math.min(35,p.coins*3),0,100);
+  const xp=p.coins>0?p.coins+5:2;
+  if(p.score>state.bestScore){
+    state.bestScore=p.score;
+    toast(`¡Nuevo récord personal: ${p.score} puntos! 🏆`,'unlock',5000);
+  }
+  renderMissions();
+  renderStats();renderButtons();addXP(xp);
+  if (p.coins>0) {
+    setMood('happy',1800);
+    say(`${pick(REACTIONS.goodGame)} Atrapaste ${p.coins} monedas y sumaste ${p.score} puntos.`,6500);
+    toast(`Partida terminada: ${p.score} puntos y +${xp} XP`);
+  } else {
+    setMood('surprised',1500);
+    say(pick(REACTIONS.badGame),5000);
+    toast('Partida terminada. ¡Probá otra vez!');
+  }
+  completeMission('play');
+  save();
+}
+
+/* =========================================================
+   RECARGAR / DESPERTAR
+   ========================================================= */
+function toggleSleep() {
+  if (ui.playing) { say('Terminemos de jugar primero.', 3000); return; }
+  if (state.sleeping) {
+    state.sleeping = false;
+    setMood('surprised', 700);
+    say(`¡Buen día! Tengo ${Math.round(state.energy)}% de energía.`, 4000);
+  } else {
+    if (state.energy >= 98) { say('¡Tengo la batería llena! Todavía no necesito recargar.', 4000); setMood('wink', 900); return; }
+    state.sleeping = true;
+    say('Recargando batería… Zzz.', 4000);
+  }
+  renderMood(); renderButtons(); save();
+}
+
+/* =========================================================
+   CONSEJOS
+   ========================================================= */
+let tipOrder = [], tipIdx = -1;
+function nextTip(manual = false) {
+  if (!tipOrder.length) {
+    tipOrder = TIPS.map((_, i) => i).sort(() => Math.random() - 0.5);
+    if (tipOrder[0] === tipIdx) tipOrder.push(tipOrder.shift());
+  }
+  tipIdx = tipOrder.shift();
+  const el = $('tipText');
+  el.textContent = TIPS[tipIdx];
+  if (manual) { el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap'); }
+}
+
+/* =========================================================
+   REINICIAR
+   ========================================================= */
+function resetAll() {
+  endPlay(true);
+  clearTimeout(saveTimer);
+  store.clear();
+  state = sanitize(null);
+  ui.moodOverride = null;
+  renderAll();
+  nextTip();
+  save(true);
+  say('¡Empezamos de nuevo! Soy Rumi, tu gatito robot.', 5000);
+  toast('Progreso reiniciado');
+}
+
+/* =========================================================
+   INICIO
+   ========================================================= */
+function init() {
+  if (!store.persistent) $('storageNotice').hidden = false;
+  buildEvolutionMarks();
+
+  // Tiempo transcurrido desde la última vez
+  const elapsed = (Date.now() - state.lastUpdate) / 1000;
+  let wokeOffline = false;
+  if (!firstRun && elapsed > 5) wokeOffline = applyElapsed(Math.min(elapsed, CFG.OFFLINE_MAX), true);
+  checkEvolution(true);
+  lastTick = Date.now();
+
+  renderAll();
+  nextTip();
+
+  // Saludo
+  if (firstRun) say('¡Hola! Soy Rumi, tu gatito robot. Creá una meta de ahorro y crezcamos juntos.', 9000);
+  else if (wokeOffline) say('¡Me recargué por completo mientras no estabas!', 7000);
+  else if (elapsed < 120) say('¡Volviste! Seguimos donde lo dejamos.', 5000);
+  else if (state.happiness < 25) say('¡Por fin volviste! Te extrañé mucho…', 6000);
+  else say('¡Hola de nuevo! Qué bueno verte.', 5000);
+
+  // Botones
+  $('playBtn').addEventListener('click', startPlay);
+  $('sleepBtn').addEventListener('click', toggleSleep);
+  $('tipBtn').addEventListener('click', () => { nextTip(true); setMood('wink', 900); say(pick(REACTIONS.tips), 2500); completeMission('tip'); });
+  $('goalBtn').addEventListener('click', createGoal);
+  ['goalName', 'goalTarget'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') createGoal(); }));
+
+  const resetBtn = $('resetBtn');
+  let armed = false, t = null;
+  resetBtn.addEventListener('click', () => {
+    if (!armed) {
+      armed = true; resetBtn.textContent = 'Tocá otra vez para borrar todo'; resetBtn.classList.add('armed');
+      t = setTimeout(() => { armed = false; resetBtn.textContent = 'Reiniciar progreso'; resetBtn.classList.remove('armed'); }, 3500);
+      return;
+    }
+    clearTimeout(t); armed = false; resetBtn.textContent = 'Reiniciar progreso'; resetBtn.classList.remove('armed');
+    resetAll();
+  });
+
+  // Ciclo de vida
+  setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') save(true); else tick();
+  });
+  window.addEventListener('pagehide', () => save(true));
+
+  save(true);
+}
+
+init();
+})();
+</script>
+</body>
+</html>
