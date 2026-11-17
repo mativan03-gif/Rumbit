@@ -56,12 +56,12 @@ export function AppShell({ title, actions, children }: { title: string; actions?
          </div>
       </main>
 
-       <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-card md:hidden">
+       <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-border bg-card md:hidden">
         {NAV.map((n) => (
           <Link
             key={n.to}
             to={n.to}
-             className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground"
+             className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 py-2 text-[9px] font-medium text-muted-foreground sm:text-[10px]"
              activeProps={{ className: "!text-primary bg-primary-soft" }}
           >
             <n.icon className="h-5 w-5" />
