@@ -57,11 +57,24 @@ function Dashboard() {
 
         <section aria-label="Acciones rápidas">
           <div className="grid gap-3 sm:grid-cols-3">
-            <Button variant="hero" className="h-12" onClick={() => setTxType("income")}><ArrowUpRight />Registrar ingreso</Button>
             <Button variant="hero" className="h-12" onClick={() => setTxType("expense")}><ArrowDownRight />Registrar gasto</Button>
+            <Button variant="secondary" className="h-12" onClick={() => setTxType("income")}><ArrowUpRight />Registrar ingreso</Button>
             <Button variant="soft" className="h-12" onClick={() => setGoalOpen(true)}><Target />Crear meta</Button>
           </div>
         </section>
+
+        <Panel title="Gastos por categoría" action={<Button asChild variant="link" className="px-0"><Link to="/estadisticas">Ver detalle<ArrowRight /></Link></Button>}>
+          <div className="grid gap-x-10 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((c, i) => (
+              <div key={c.name} className="min-w-0">
+                <div className="mb-2 flex items-center justify-between gap-2 text-sm"><span className="font-medium">{c.name}</span><span className="tabular-nums text-muted-foreground">{c.pct}%</span></div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${c.pct}%`, backgroundColor: `var(--chart-${i % 9 + 1})` }} /></div>
+                <p className="mt-2 text-sm font-semibold tabular-nums">{money(c.value)}</p>
+              </div>
+            ))}
+            {!categories.length && <p className="text-sm text-muted-foreground">No hay gastos en este período.</p>}
+          </div>
+        </Panel>
 
         <div className="grid gap-5 lg:grid-cols-5">
           <Panel title="Últimos movimientos" className="lg:col-span-3" action={<Button asChild variant="link" className="px-0"><Link to="/movimientos">Ver todos<ArrowRight className="h-4 w-4" /></Link></Button>}>
@@ -96,18 +109,6 @@ function Dashboard() {
             {tip && <RumbiTip message={tip.text} />}
           </div>
         </div>
-        <Panel title="Gastos por categoría" action={<Button asChild variant="link" className="px-0"><Link to="/estadisticas">Ver detalle<ArrowRight /></Link></Button>}>
-          <div className="grid gap-x-10 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((c, i) => (
-              <div key={c.name} className="min-w-0">
-                <div className="mb-2 flex items-center justify-between gap-2 text-sm"><span className="font-medium">{c.name}</span><span className="tabular-nums text-muted-foreground">{c.pct}%</span></div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${c.pct}%`, backgroundColor: `var(--chart-${i % 9 + 1})` }} /></div>
-                <p className="mt-2 text-sm font-semibold tabular-nums">{money(c.value)}</p>
-              </div>
-            ))}
-            {!categories.length && <p className="text-sm text-muted-foreground">No hay gastos en este período.</p>}
-          </div>
-        </Panel>
       </div>
       <TxDialog open={!!txType} onOpenChange={(o) => !o && setTxType(null)} defaultType={txType ?? "expense"} />
       <GoalDialog open={goalOpen} onOpenChange={setGoalOpen} />
