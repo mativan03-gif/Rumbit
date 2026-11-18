@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
 import { byCategory, inMonth, totals } from "@/lib/finance";
@@ -28,18 +29,25 @@ const FILTERS = [
   { id: "3m", label: "Últimos 3 meses" },
 ] as const;
 
+function localDateKey(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 function Stats() {
   const txs = useApp((s) => s.txs);
   const money = useMoney();
   const [f, setF] = useState<(typeof FILTERS)[number]["id"]>("month");
   const now = new Date();
 
-  const filtered = useMemo(() => {
-    const iso = (d: Date) => d.toISOString().slice(0, 10);
-    if (f === "month") return inMonth(txs, now);
-    const start = f === "week" ? new Date(now.getTime() - 6 * 864e5) : new Date(now.getFullYear(), now.getMonth() - 2, 1);
-    return txs.filter((t) => t.date >= iso(start) && t.date <= iso(now));
-  }, [txs, f]);
+  const start = f === "week"
+    ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6)
+    : new Date(now.getFullYear(), now.getMonth() - (f === "3m" ? 2 : 0), 1);
+  const end = f === "month" ? new Date(now.getFullYear(), now.getMonth() + 1, 0) : now;
+  const from = localDateKey(start);
+  const to = localDateKey(end);
+  const filtered = txs.filter((t) => t.date >= from && t.date <= to);
 
   const cats = byCategory(filtered);
   const monthly = [2, 1, 0].map((back) => {
@@ -77,10 +85,18 @@ function Stats() {
               </div>
               <ul className="space-y-2 text-sm">
                 {cats.map((c, i) => (
-                  <li key={c.name} className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full" style={{ background: COLORS[i % 9] }} />
-                    <span className="flex-1">{c.name}</span>
-                    <span className="font-semibold">{c.pct}%</span>
+                  <li key={c.name}>
+                    <Link
+                      to="/movimientos"
+                      search={{ type: "expense", category: c.name, from, to }}
+                      aria-label={`Ver gastos de ${c.name} (${c.pct} %)`}
+                      className="flex items-center gap-2 rounded-md px-1 py-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: COLORS[i % 9] }} />
+                      <span className="min-w-0 flex-1 break-words">{c.name}</span>
+                      <span className="font-semibold">{c.pct}%</span>
+                      <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+                    </Link>
                   </li>
                 ))}
               </ul>
