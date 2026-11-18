@@ -31,13 +31,35 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
   const cats = type === "income" ? [INCOME_CATEGORY, ...categories] : categories;
 
   const save = () => {
-    const data = { type, amount: Number(amount), description, category: category || (type === "income" ? INCOME_CATEGORY : ""), date };
+    const data = { type, amount: Number(amount), description: description.trim(), category: category || (type === "income" ? INCOME_CATEGORY : ""), date };
     const err = validateTx(data);
     if (err) { toast.error(err); return; }
     actions.saveTx({ ...data, id: tx?.id });
     toast.success(tx ? "Movimiento actualizado" : "Movimiento guardado");
     onOpenChange(false);
   };
+
+  const descField = (
+    <div className="grid gap-1.5">
+      <Label htmlFor="desc">{type === "expense" ? "Descripción (opcional)" : "Descripción *"}</Label>
+      <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ej: Supermercado" maxLength={60} />
+    </div>
+  );
+  const categoryField = (
+    <div className="grid gap-1.5">
+      <Label>Categoría *</Label>
+      <Select value={category} onValueChange={setCategory}>
+        <SelectTrigger aria-label="Categoría"><SelectValue placeholder="Elegí" /></SelectTrigger>
+        <SelectContent>{cats.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+      </Select>
+    </div>
+  );
+  const dateField = (
+    <div className="grid gap-1.5">
+      <Label htmlFor="date">Fecha *</Label>
+      <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,23 +86,21 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
             <Label htmlFor="amount">Monto *</Label>
             <Input id="amount" type="number" min="0" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="desc">Descripción *</Label>
-            <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ej: Supermercado" maxLength={60} />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-1.5">
-              <Label>Categoría *</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue placeholder="Elegí" /></SelectTrigger>
-                <SelectContent>{cats.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="date">Fecha *</Label>
-              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-          </div>
+          {type === "expense" ? (
+            <>
+              {categoryField}
+              {dateField}
+              {descField}
+            </>
+          ) : (
+            <>
+              {descField}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {categoryField}
+                {dateField}
+              </div>
+            </>
+          )}
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

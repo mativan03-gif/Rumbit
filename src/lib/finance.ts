@@ -57,10 +57,15 @@ export function goalProgress(g: Goal) {
 
 export function validateTx(t: Partial<Tx>): string | null {
   if (!t.amount || !(t.amount > 0)) return "El monto debe ser mayor a cero.";
-  if (!t.description?.trim()) return "Completá la descripción.";
+  if (t.type !== "expense" && !t.description?.trim()) return "Completá la descripción.";
   if (!t.category) return "Elegí una categoría.";
   if (!t.date) return "Elegí una fecha.";
   return null;
+}
+
+/** Título visible: la descripción, o la categoría si un gasto no tiene descripción. */
+export function txTitle(t: Pick<Tx, "description" | "category">) {
+  return t.description?.trim() || t.category;
 }
 
 export function formatMoney(n: number, currency = "ARS") {

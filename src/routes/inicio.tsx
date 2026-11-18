@@ -6,7 +6,7 @@ import { GoalDialog, TxDialog } from "@/components/rumbit/Dialogs";
 import { RumbiTip, Rumbi } from "@/components/rumbit/Rumbi";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { byCategory, formatDate, goalProgress, inMonth, totals, type TxType } from "@/lib/finance";
+import { byCategory, formatDate, goalProgress, inMonth, totals, txTitle, type TxType } from "@/lib/finance";
 import { useApp, useMoney } from "@/lib/store";
 import { buildTips, rumbiMessage } from "@/lib/tips";
 
@@ -83,7 +83,7 @@ function Dashboard() {
                 <li key={x.id} className="flex flex-wrap items-center gap-3 py-4">
                   <div className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-input sm:flex ${x.type === "income" ? "bg-success-soft text-success" : "bg-muted text-muted-foreground"}`}>{x.type === "income" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}</div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{x.description}</p>
+                    <p className="font-medium">{txTitle(x)}</p>
                     <p className="text-xs text-muted-foreground">{x.category} · {formatDate(x.date)}</p>
                   </div>
                   <span className={`ml-auto finance-number text-sm font-semibold ${x.type === "income" ? "text-success" : "text-foreground"}`}>{x.type === "income" ? "+" : "−"}{money(x.amount)}</span>

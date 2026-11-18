@@ -8,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDate, INCOME_CATEGORY, type Tx } from "@/lib/finance";
+import { formatDate, INCOME_CATEGORY, txTitle, type Tx } from "@/lib/finance";
 import { actions, useApp, useMoney } from "@/lib/store";
 
 export const Route = createFileRoute("/movimientos")({
@@ -38,7 +38,7 @@ function Movements() {
   const list = useMemo(
     () =>
       [...txs]
-        .filter((t) => (cat === "all" || t.category === cat) && t.description.toLowerCase().includes(q.toLowerCase()) && (!from || t.date >= from) && (!to || t.date <= to))
+        .filter((t) => (cat === "all" || t.category === cat) && txTitle(t).toLowerCase().includes(q.toLowerCase()) && (!from || t.date >= from) && (!to || t.date <= to))
         .sort((a, b) => b.date.localeCompare(a.date)),
     [txs, q, cat, from, to],
   );
@@ -69,7 +69,7 @@ function Movements() {
             <li key={t.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-4 sm:flex">
               <div className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-input sm:flex ${t.type === "income" ? "bg-success-soft text-success" : "bg-muted text-muted-foreground"}`}>{t.type === "income" ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}</div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium">{t.description}</p>
+                <p className="font-medium">{txTitle(t)}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{t.type === "income" ? "Ingreso" : "Gasto"} · {t.category} · {formatDate(t.date)}</p>
               </div>
               <span className={`finance-number text-sm font-semibold ${t.type === "income" ? "text-success" : ""}`}>{t.type === "income" ? "+" : "−"}{money(t.amount)}</span>
@@ -92,7 +92,7 @@ function Movements() {
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar movimiento?</AlertDialogTitle>
-            <AlertDialogDescription>Vas a eliminar "{del?.description}". Esta acción no se puede deshacer.</AlertDialogDescription>
+            <AlertDialogDescription>Vas a eliminar "{del ? txTitle(del) : ""}". Esta acción no se puede deshacer.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
