@@ -209,7 +209,7 @@ function Movements() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { if (del) actions.deleteTx(del.id); toast.success("Movimiento eliminado"); }}>
+            <AlertDialogAction onClick={async () => { if (del && await actions.deleteTx(del.id)) toast.success("Movimiento eliminado"); }}>
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

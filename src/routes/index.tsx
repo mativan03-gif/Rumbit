@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Rumbi } from "@/components/rumbit/Rumbi";
-import { actions } from "@/lib/store";
+import { actions, useApp } from "@/lib/store";
+import { authErrorMessage, getAuthClient } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,35 +28,129 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const enter = (mode: "login" | "signup" | "guest") => {
-    if (mode !== "guest") {
-      if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("Ingresá un email válido."); return; }
-      if (password.length < 6) { toast.error("La contraseña debe tener al menos 6 caracteres."); return; }
+  const [busy, setBusy] = useState(false);
+  const hydrated = useApp((state) => state.hydrated);
+  const session = useApp((state) => state.session);
+  const recovering = useApp((state) => state.recoveringPassword);
+  const callbackError = useApp((state) => state.authCallbackError);
+
+  useEffect(() => {
+    if (callbackError) toast.error(authErrorMessage(callbackError));
+  }, [callbackError]);
+
+  useEffect(() => {
+    if (hydrated && session && !recovering) {
+      void navigate({ to: "/inicio", replace: true });
     }
-    actions.login(mode === "guest" ? "invitado@rumbit.app" : email, mode === "guest");
-    toast.success(mode === "signup" ? "¡Cuenta demo creada!" : "¡Bienvenido!");
-    navigate({ to: "/inicio" });
-    return undefined;
+  }, [hydrated, session, recovering, navigate]);
+
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const query = new URLSearchParams(window.location.search);
+    const code = hash.get("error_code") ?? query.get("error_code");
+    if (code) {
+      toast.error(authErrorMessage(code));
+      window.history.replaceState(window.history.state, "", window.location.pathname);
+    }
+  }, []);
+
+  const enter = async (mode: "login" | "signup" | "reset" | "update") => {
+    const client = getAuthClient();
+    if (!client) {
+      toast.error("Supabase todavía no está configurado. Podés usar el modo invitado.");
+      return;
+    }
+    const address = email.trim();
+    if (mode !== "update" && !/^\S+@\S+\.\S+$/.test(address)) {
+      toast.error("Ingresá un email válido.");
+      return;
+    }
+    if (mode === "login" && !password) {
+      toast.error("Ingresá tu contraseña.");
+      return;
+    }
+    if ((mode === "signup" || mode === "update") && password.length < 8) {
+      toast.error("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+
+    setBusy(true);
+    const redirectTo = new URL("/", window.location.origin).href;
+    try {
+      if (mode === "login") {
+        const { error } = await client.auth.signInWithPassword({ email: address, password });
+        if (error) {
+          toast.error(authErrorMessage(error.code));
+          return;
+        }
+      } else if (mode === "signup") {
+        const { data, error } = await client.auth.signUp({
+          email: address, password, options: { emailRedirectTo: redirectTo },
+        });
+        if (error) {
+          toast.error(authErrorMessage(error.code));
+          return;
+        }
+        if (!data.session) toast.success("Revisá tu correo para confirmar la cuenta.");
+      } else if (mode === "reset") {
+        const { error } = await client.auth.resetPasswordForEmail(address, { redirectTo });
+        if (error) {
+          toast.error(authErrorMessage(error.code));
+          return;
+        }
+        toast.success("Si el correo está registrado, vas a recibir un enlace de recuperación.");
+      } else {
+        const { error } = await client.auth.updateUser({ password });
+        if (error) {
+          toast.error(authErrorMessage(error.code));
+          return;
+        }
+        actions.finishRecovery();
+        toast.success("Contraseña actualizada.");
+      }
+      setPassword("");
+    } catch {
+      toast.error(authErrorMessage());
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-5 sm:px-10">
         <div className="flex items-center gap-2"><Rumbi className="h-10 w-10 animate-none" /><span className="text-2xl font-bold">RUMBIT<span className="text-primary">.</span></span></div>
-        <span className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Modo demo</span>
+        <span className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sin conexión bancaria</span>
       </header>
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <form className="animate-rise w-full max-w-sm space-y-6" onSubmit={(e) => { e.preventDefault(); enter("login"); }}>
+        <form className="animate-rise w-full max-w-sm space-y-6" onSubmit={(e) => { e.preventDefault(); void enter(recovering ? "update" : "login"); }}>
           <div className="flex items-center gap-3"><Rumbi className="h-14 w-14 animate-none" /><span className="text-sm font-medium text-primary">Tu dinero, tu rumbo.</span></div>
           <div>
-            <h1 className="text-3xl font-bold leading-tight">Bienvenido a RUMBIT</h1>
+            <h1 className="text-3xl font-bold leading-tight">{recovering ? "Elegí una nueva contraseña" : "Bienvenido a RUMBIT"}</h1>
             <p className="mt-2 text-muted-foreground">Organizá tu dinero y alcanzá tus objetivos de ahorro.</p>
           </div>
-          <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vos@email.com" /></div>
-          <div className="grid gap-2"><Label htmlFor="pass">Contraseña</Label><Input id="pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" /></div>
-          <Button type="submit" variant="hero" className="h-12 w-full">Iniciar sesión<ArrowRight /></Button>
-          <Button type="button" variant="soft" className="h-11 w-full" onClick={() => enter("signup")}>Crear cuenta</Button>
-          <Button type="button" variant="ghost" className="w-full" onClick={() => enter("guest")}>Continuar como invitado</Button>
+          <fieldset disabled={!hydrated || busy || (!!session && !recovering)} className="space-y-6">
+            {!recovering && (
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vos@email.com" />
+              </div>
+            )}
+            <div className="grid gap-2">
+              <Label htmlFor="pass">{recovering ? "Nueva contraseña" : "Contraseña"}</Label>
+              <Input id="pass" type="password" autoComplete={recovering ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+            </div>
+            <Button type="submit" variant="hero" className="h-12 w-full">
+              {recovering ? "Guardar contraseña" : "Iniciar sesión"}<ArrowRight />
+            </Button>
+            {!recovering && (
+              <>
+                <Button type="button" variant="ghost" className="w-full" onClick={() => void enter("reset")}>Recuperar contraseña</Button>
+                <Button type="button" variant="soft" className="h-11 w-full" onClick={() => void enter("signup")}>Crear cuenta</Button>
+                <Button type="button" variant="ghost" className="w-full" onClick={actions.startDemo}>Continuar como invitado</Button>
+              </>
+            )}
+          </fieldset>
         </form>
       </div>
       <footer className="px-6 pb-8 text-center text-xs leading-relaxed text-muted-foreground">Prototipo con datos ficticios. Sin conexión bancaria.</footer>

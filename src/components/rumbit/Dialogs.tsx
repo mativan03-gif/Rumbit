@@ -30,11 +30,12 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
 
   const cats = type === "income" ? [INCOME_CATEGORY, ...categories] : categories;
 
-  const save = () => {
+  const saving = useApp((s) => s.saving);
+  const save = async () => {
     const data = { type, amount: Number(amount), description: description.trim(), category: category || (type === "income" ? INCOME_CATEGORY : ""), date };
     const err = validateTx(data);
     if (err) { toast.error(err); return; }
-    actions.saveTx({ ...data, id: tx?.id });
+    if (!(await actions.saveTx({ ...data, id: tx?.id }))) return;
     toast.success(tx ? "Movimiento actualizado" : "Movimiento guardado");
     onOpenChange(false);
   };
@@ -104,7 +105,7 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { 
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button variant="hero" onClick={save}>Guardar movimiento</Button>
+          <Button variant="hero" onClick={save} disabled={saving}>Guardar movimiento</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -124,12 +125,13 @@ export function GoalDialog({ open, onOpenChange, goal }: { open: boolean; onOpen
     setSaved(goal ? String(goal.saved) : "0");
   }, [open, goal]);
 
-  const save = () => {
+  const saving = useApp((s) => s.saving);
+  const save = async () => {
     if (!name.trim()) { toast.error("Poné un nombre a tu meta."); return; }
     if (!(Number(target) > 0)) { toast.error("El monto objetivo debe ser mayor a cero."); return; }
     if (Number(saved) < 0) { toast.error("El monto inicial no puede ser negativo."); return; }
     if (!date) { toast.error("Elegí una fecha estimada."); return; }
-    actions.saveGoal({ id: goal?.id, name: name.trim(), target: Number(target), saved: Number(saved) || 0, date });
+    if (!(await actions.saveGoal({ id: goal?.id, name: name.trim(), target: Number(target), saved: Number(saved) || 0, date }))) return;
     toast.success(goal ? "Meta actualizada" : "¡Meta creada! Rumbi te acompaña.");
     onOpenChange(false);
   };
@@ -148,7 +150,7 @@ export function GoalDialog({ open, onOpenChange, goal }: { open: boolean; onOpen
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button variant="hero" onClick={save}>{goal ? "Guardar cambios" : "Crear meta"}</Button>
+          <Button variant="hero" onClick={save} disabled={saving}>{goal ? "Guardar cambios" : "Crear meta"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -158,10 +160,11 @@ export function GoalDialog({ open, onOpenChange, goal }: { open: boolean; onOpen
 export function ProgressDialog({ goal, onOpenChange }: { goal: Goal | null; onOpenChange: (o: boolean) => void }) {
   const [amount, setAmount] = useState("");
   useEffect(() => setAmount(""), [goal]);
-  const save = () => {
+  const saving = useApp((s) => s.saving);
+  const save = async () => {
     if (!goal) return;
     if (!(Number(amount) > 0)) { toast.error("El monto debe ser mayor a cero."); return; }
-    actions.addProgress(goal.id, Number(amount));
+    if (!(await actions.addProgress(goal.id, Number(amount)))) return;
     toast.success("¡Avance registrado! Seguí así.");
     onOpenChange(false);
   };
@@ -173,7 +176,7 @@ export function ProgressDialog({ goal, onOpenChange }: { goal: Goal | null; onOp
         <p className="text-xs text-muted-foreground">Es un seguimiento manual: RUMBIT no guarda ni transfiere dinero.</p>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button variant="hero" onClick={save}>Registrar avance</Button>
+          <Button variant="hero" onClick={save} disabled={saving}>Registrar avance</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

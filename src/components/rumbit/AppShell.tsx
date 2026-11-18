@@ -1,7 +1,9 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings, ShieldCheck, Gamepad2 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import { useApp } from "@/lib/store";
+import { actions as sessionActions, useApp } from "@/lib/store";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Rumbi } from "./Rumbi";
 
 const NAV = [
@@ -18,9 +20,17 @@ export function AppShell({ title, actions, children }: { title: string; actions?
   const hydrated = useApp((s) => s.hydrated);
   const session = useApp((s) => s.session);
   const navigate = useNavigate();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const accountStatus = useApp((s) => s.accountStatus);
+  const saving = useApp((s) => s.saving);
+  const recovering = useApp((s) => s.recoveringPassword);
   useEffect(() => {
-    if (hydrated && !session) navigate({ to: "/" });
-  }, [hydrated, session, navigate]);
+    if (hydrated && (!session || recovering)) void navigate({ to: "/", replace: true });
+  }, [hydrated, recovering, session, navigate]);
+
+  if (!hydrated || !session || recovering) return null;
+  const financePending = !session.guest && accountStatus !== "ready" &&
+    pathname !== "/jugar-con-rumi" && pathname !== "/recomendaciones";
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,17 +52,32 @@ export function AppShell({ title, actions, children }: { title: string; actions?
             </Link>
           ))}
         </nav>
-         <div className="mt-auto flex items-start gap-2 border-t border-border px-3 pt-6 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" /><p>Prototipo con datos ficticios.<br />Sin conexión bancaria.</p></div>
+         <div className="mt-auto flex items-start gap-2 border-t border-border px-3 pt-6 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" /><p>{session.guest && <>Modo de demostración.<br /></>}Sin conexión bancaria.</p></div>
       </aside>
 
        <main className="min-w-0 pb-24 md:pb-12 md:pl-64">
          <div className="mx-auto max-w-[1440px]">
          <div className="flex items-center gap-2 border-b border-border px-5 py-4 md:hidden"><Rumbi className="h-8 w-8 animate-none" /><span className="font-bold">RUMBIT<span className="text-primary">.</span></span></div>
          <header className="flex flex-wrap items-center justify-between gap-4 px-5 pt-8 md:px-8 md:pt-10 lg:px-10">
-           <h1 className="min-w-0 text-2xl font-bold leading-tight md:text-3xl">{title}</h1>
-          {actions}
+           <h1 className="min-w-0 text-2xl font-bold leading-tight md:text-3xl">{financePending ? "Cuenta Rumbit" : title}</h1>
+          {financePending ? null : actions}
         </header>
-         <div className="animate-rise px-5 pt-6 md:px-8 lg:px-10">{children}</div>
+         {saving && <p role="status" className="px-5 pt-2 text-sm text-muted-foreground md:px-8 lg:px-10">Guardando…</p>}
+         <div className="animate-rise px-5 pt-6 md:px-8 lg:px-10">{financePending ? (
+           <Panel title={accountStatus === "error" ? "No pudimos cargar tu cuenta" : "Cargando tu cuenta"}>
+             <p className="mb-4 text-sm text-muted-foreground" role="status">
+               {accountStatus === "error"
+                 ? "Comprobá la conexión o la configuración de Supabase y volvé a intentar."
+                 : "Estamos recuperando tus datos."}
+             </p>
+             <div className="flex flex-wrap gap-2">
+               {accountStatus === "error" && <Button onClick={sessionActions.retryAccount}>Reintentar</Button>}
+               <Button variant="outline" onClick={async () => {
+                 if (!(await sessionActions.logout())) toast.error("No pudimos cerrar la sesión. Volvé a intentar.");
+               }}>Cerrar sesión</Button>
+             </div>
+           </Panel>
+         ) : children}</div>
          </div>
       </main>
 

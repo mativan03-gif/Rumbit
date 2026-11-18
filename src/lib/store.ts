@@ -1,10 +1,20 @@
 import { useSyncExternalStore } from "react";
 import { DEFAULT_CATEGORIES, SAMPLE_GOALS, SAMPLE_TXS, type Goal, type Tx } from "./finance";
+import { getAuthClient } from "./auth";
+import { newAccountData, parseAccountData, type AccountData } from "./account-data";
+import { toast } from "sonner";
 
-export type Session = { email: string; guest: boolean } | null;
+export type Session =
+  | { email: string; guest: true }
+  | { email: string; guest: false; userId: string }
+  | null;
 export type State = {
   hydrated: boolean;
+  recoveringPassword: boolean;
+  authCallbackError: string | null;
   session: Session;
+  accountStatus: "loading" | "ready" | "error";
+  saving: boolean;
   userName: string;
   currency: string;
   categories: string[];
@@ -12,10 +22,15 @@ export type State = {
   goals: Goal[];
 };
 
-const KEY = "rumbit-state-v1";
+const DEMO_KEY = "rumbit-demo-state-v2";
+const RECOVERY_KEY = "rumbit-password-recovery";
 const initial: State = {
   hydrated: false,
+  recoveringPassword: false,
+  authCallbackError: null,
   session: null,
+  accountStatus: "loading",
+  saving: false,
   userName: "Sofi",
   currency: "ARS",
   categories: DEFAULT_CATEGORIES,
@@ -28,20 +43,192 @@ const listeners = new Set<() => void>();
 
 function set(patch: Partial<State> | ((s: State) => Partial<State>)) {
   state = { ...state, ...(typeof patch === "function" ? patch(state) : patch) };
-  if (state.hydrated) {
-    const { hydrated: _h, ...rest } = state;
-    localStorage.setItem(KEY, JSON.stringify(rest));
+  if (state.session?.guest) {
+    const { userName, currency, categories, txs, goals } = state;
+    try {
+      localStorage.setItem(DEMO_KEY, JSON.stringify({ userName, currency, categories, txs, goals }));
+    } catch {
+      // The demo still works for this visit if storage is unavailable.
+    }
   }
-  listeners.forEach((l) => l());
+  listeners.forEach((listener) => listener());
 }
 
-export function hydrate() {
-  if (state.hydrated) return;
-  let saved: Partial<State> = {};
+let accountGeneration = 0;
+let accountRevision: number | null = null;
+
+async function loadAccount(userId: string) {
+  const generation = ++accountGeneration;
+  accountRevision = null;
+  set({ accountStatus: "loading", saving: false });
+
   try {
-    saved = JSON.parse(localStorage.getItem(KEY) ?? "{}");
-  } catch {}
-  set({ ...saved, hydrated: true });
+    const client = getAuthClient();
+    if (!client) throw new Error("Supabase client unavailable");
+    const { data, error } = await client.from("rumbit_account_data")
+      .select("data,revision").eq("user_id", userId).maybeSingle();
+    if (error) throw error;
+    if (generation !== accountGeneration) return;
+    const snapshot = data ? parseAccountData(data.data) : newAccountData;
+    accountRevision = data?.revision ?? null;
+    set({ ...snapshot, accountStatus: "ready" });
+  } catch {
+    if (generation === accountGeneration) set({ accountStatus: "error" });
+  }
+}
+
+function acceptAccount(userId: string, email: string, recoveringPassword: boolean) {
+  const session = { email, userId, guest: false } as const;
+  if (state.session?.guest === false && state.session.userId === userId &&
+      state.recoveringPassword === recoveringPassword) {
+    if (state.session.email !== email) set({ session });
+    return;
+  }
+
+  const generation = ++accountGeneration;
+  accountRevision = null;
+  set({ ...initial, ...newAccountData, hydrated: true, session, recoveringPassword });
+  // Schedule the database request outside the Supabase auth callback.
+  if (!recoveringPassword) queueMicrotask(() => {
+    if (generation === accountGeneration) void loadAccount(userId);
+  });
+}
+
+async function saveData(change: (current: State) => Partial<State>) {
+  const session = state.session;
+  if (!session || state.recoveringPassword) return false;
+  if (session.guest) {
+    set(change);
+    return true;
+  }
+  if (state.saving || state.accountStatus !== "ready") {
+    toast.error("Esperá a que termine la operación anterior.");
+    return false;
+  }
+
+  const generation = accountGeneration;
+  const revision = accountRevision;
+  set({ saving: true });
+  try {
+    const snapshot = parseAccountData({ ...state, ...change(state) });
+    const client = getAuthClient();
+    if (!client) throw new Error("Supabase client unavailable");
+    const table = client.from("rumbit_account_data");
+    const result = revision === null
+      ? await table.insert({ user_id: session.userId, data: snapshot }).select("revision").single()
+      : await table.update({ data: snapshot, revision: revision + 1 }).eq("user_id", session.userId)
+          .eq("revision", revision).select("revision").maybeSingle();
+
+    if (generation !== accountGeneration) return false;
+    if (result.error?.code === "23505" || (!result.error && !result.data)) {
+      toast.error("Tus datos cambiaron en otra pestaña o dispositivo. Volvimos a cargarlos. Revisá el cambio y probá de nuevo.");
+      void loadAccount(session.userId);
+      return false;
+    }
+    if (result.error || !result.data) throw result.error ?? new Error("Missing save confirmation");
+
+    accountRevision = result.data.revision;
+    set(snapshot);
+    return true;
+  } catch {
+    if (generation === accountGeneration) {
+      toast.error("No pudimos confirmar el guardado. Volveremos a cargar tus datos para que puedas comprobarlo.");
+      void loadAccount(session.userId);
+    }
+    return false;
+  } finally {
+    if (generation === accountGeneration) set({ saving: false });
+  }
+}
+
+let authStarted = false;
+
+export function hydrate() {
+  if (authStarted) return;
+  authStarted = true;
+  const client = getAuthClient();
+  if (!client) {
+    set({ hydrated: true });
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  const code = url.pathname === "/" ? url.searchParams.get("code") : null;
+  let processingCallback = !!code;
+  let recoveryCallback = false;
+
+  client.auth.onAuthStateChange((event, session) => {
+    if (processingCallback) {
+      if (event === "PASSWORD_RECOVERY") recoveryCallback = true;
+      return;
+    }
+    if (session) {
+      let recoveringPassword = event === "PASSWORD_RECOVERY" ||
+        (state.recoveringPassword && state.session?.guest === false && state.session.userId === session.user.id);
+      try {
+        if (event === "PASSWORD_RECOVERY") {
+          sessionStorage.setItem(RECOVERY_KEY, session.user.id);
+        }
+        recoveringPassword ||= sessionStorage.getItem(RECOVERY_KEY) === session.user.id;
+      } catch {
+        // Recovery still works without storage while this page stays open.
+      }
+      acceptAccount(session.user.id, session.user.email ?? "", recoveringPassword);
+    } else if (!state.session?.guest) {
+      try {
+        sessionStorage.removeItem(RECOVERY_KEY);
+      } catch {
+        // Storage may be unavailable.
+      }
+      accountGeneration++;
+      accountRevision = null;
+      set({ ...initial, hydrated: true });
+    }
+  });
+
+  if (code) {
+    void (async () => {
+      try {
+        const { data, error } = await client.auth.exchangeCodeForSession(code);
+        if (error || !data.session) {
+          set({ hydrated: true, authCallbackError: error?.code ?? "otp_expired" });
+          return;
+        }
+        const { user } = data.session;
+        const recoveringPassword = recoveryCallback;
+        if (recoveringPassword) {
+          try {
+            sessionStorage.setItem(RECOVERY_KEY, user.id);
+          } catch {
+            // The current page can still complete recovery.
+          }
+        }
+        acceptAccount(user.id, user.email ?? "", recoveringPassword);
+      } catch {
+        set({ hydrated: true, authCallbackError: "otp_expired" });
+      } finally {
+        processingCallback = false;
+        url.searchParams.delete("code");
+        window.history.replaceState(window.history.state, "", url);
+      }
+    })();
+  }
+}
+
+function startDemo() {
+  const saved = { userName: initial.userName, currency: initial.currency,
+    categories: initial.categories, txs: initial.txs, goals: initial.goals };
+  try {
+    const raw = JSON.parse(localStorage.getItem(DEMO_KEY) ?? "null");
+    if (raw && typeof raw.userName === "string" && typeof raw.currency === "string"
+      && Array.isArray(raw.categories) && Array.isArray(raw.txs) && Array.isArray(raw.goals)) {
+      Object.assign(saved, { userName: raw.userName, currency: raw.currency,
+        categories: raw.categories, txs: raw.txs, goals: raw.goals });
+    }
+  } catch {
+    // An unavailable demo snapshot falls back to sample records.
+  }
+  set({ ...saved, session: { email: "invitado@rumbit.app", guest: true } });
 }
 
 export function useApp<T>(sel: (s: State) => T): T {
@@ -55,24 +242,55 @@ export function useApp<T>(sel: (s: State) => T): T {
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 export const actions = {
-  login: (email: string, guest = false) => set({ session: { email, guest } }),
-  logout: () => set({ session: null }),
-  setName: (userName: string) => set({ userName }),
-  setCurrency: (currency: string) => set({ currency }),
-  setCategories: (categories: string[]) => set({ categories }),
+  startDemo,
+  retryAccount: () => {
+    if (state.session?.guest === false && !state.recoveringPassword && !state.saving) {
+      void loadAccount(state.session.userId);
+    }
+  },
+  finishRecovery: () => {
+    try {
+      sessionStorage.removeItem(RECOVERY_KEY);
+    } catch {
+      // Storage may be unavailable.
+    }
+    set({ recoveringPassword: false });
+    if (state.session?.guest === false) void loadAccount(state.session.userId);
+  },
+  logout: async () => {
+    if (state.saving) return false;
+    if (state.session?.guest) {
+      set({ ...initial, hydrated: true });
+      return true;
+    }
+
+    try {
+      const client = getAuthClient();
+      if (!client) return false;
+      const { error } = await client.auth.signOut({ scope: "local" });
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+  setName: (userName: string) => saveData(() => ({ userName })),
+  setCurrency: (currency: string) => saveData(() => ({ currency })),
+  setCategories: (categories: string[]) => saveData(() => ({ categories })),
   saveTx: (t: Omit<Tx, "id"> & { id?: string | undefined }) =>
-    set((s) => ({
+    saveData((s) => ({
       txs: t.id ? s.txs.map((x) => (x.id === t.id ? (t as Tx) : x)) : [{ ...t, id: uid() }, ...s.txs],
     })),
-  deleteTx: (id: string) => set((s) => ({ txs: s.txs.filter((x) => x.id !== id) })),
+  deleteTx: (id: string) => saveData((s) => ({ txs: s.txs.filter((x) => x.id !== id) })),
   saveGoal: (g: Omit<Goal, "id"> & { id?: string | undefined }) =>
-    set((s) => ({
+    saveData((s) => ({
       goals: g.id ? s.goals.map((x) => (x.id === g.id ? (g as Goal) : x)) : [...s.goals, { ...g, id: uid() }],
     })),
   addProgress: (id: string, amount: number) =>
-    set((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, saved: g.saved + amount } : g)) })),
-  deleteGoal: (id: string) => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
-  resetDemo: () => set({ txs: SAMPLE_TXS, goals: SAMPLE_GOALS, categories: DEFAULT_CATEGORIES }),
+    saveData((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, saved: g.saved + amount } : g)) })),
+  deleteGoal: (id: string) => saveData((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+  resetDemo: () => {
+    if (state.session?.guest) set({ txs: SAMPLE_TXS, goals: SAMPLE_GOALS, categories: DEFAULT_CATEGORIES });
+  },
 };
 
 export const useMoney = () => {
