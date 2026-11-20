@@ -21,10 +21,10 @@ import { formatDate, INCOME_CATEGORY, txTitle, type Tx, type TxType } from "@/li
 import { actions, useApp, useMoney } from "@/lib/store";
 
 type MovementFilters = {
-  type?: TxType;
-  category?: string;
-  from?: string;
-  to?: string;
+  type?: TxType | undefined;
+  category?: string | undefined;
+  from?: string | undefined;
+  to?: string | undefined;
 };
 
 function readDate(value: unknown) {
@@ -33,10 +33,10 @@ function readDate(value: unknown) {
 
 export const Route = createFileRoute("/movimientos")({
   validateSearch: (search: Record<string, unknown>): MovementFilters => ({
-    type: search.type === "expense" || search.type === "income" ? search.type : undefined,
-    category: typeof search.category === "string" && search.category ? search.category : undefined,
-    from: readDate(search.from),
-    to: readDate(search.to),
+    type: search["type"] === "expense" || search["type"] === "income" ? search["type"] : undefined,
+    category: typeof search["category"] === "string" && search["category"] ? search["category"] : undefined,
+    from: readDate(search["from"]),
+    to: readDate(search["to"]),
   }),
   head: () => ({
     meta: [
@@ -133,6 +133,12 @@ function Movements() {
             {type && (
               <span className="rounded-input bg-muted px-3 py-1 text-sm">
                 Tipo: {type === "expense" ? "Gasto" : "Ingreso"}
+              </span>
+            )}
+            {cat && <span className="rounded-input bg-muted px-3 py-1 text-sm">Categoría: {cat}</span>}
+            {(from || to) && (
+              <span className="rounded-input bg-muted px-3 py-1 text-sm">
+                Fechas: {from ? formatDate(from) : "inicio"} – {to ? formatDate(to) : "hoy"}
               </span>
             )}
             <Button

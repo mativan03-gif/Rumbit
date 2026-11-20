@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Info, Target, Wallet, ArrowRight } from "
 import { useState } from "react";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
 import { GoalDialog, TxDialog } from "@/components/rumbit/Dialogs";
+import { HowToGuide } from "@/components/rumbit/HowToGuide";
 import { RumbiTip, Rumbi } from "@/components/rumbit/Rumbi";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -45,6 +46,7 @@ function Dashboard() {
     <AppShell title={`¡Hola, ${name}!`}>
       <p className="mb-6 text-sm text-muted-foreground">Tu resumen de {new Date().toLocaleDateString("es-AR", { month: "long", year: "numeric" })}</p>
       <div className="grid gap-6">
+        <HowToGuide onRegisterExpense={() => setTxType("expense")} onCreateGoal={() => setGoalOpen(true)} />
         <div className="grid gap-4 sm:grid-cols-3">
           {cards.map((c) => (
             <Panel key={c.label} className={c.icon === Wallet ? "border-primary/20 bg-primary-soft sm:order-first" : ""}>
