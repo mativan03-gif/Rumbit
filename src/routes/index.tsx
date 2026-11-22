@@ -181,7 +181,12 @@ function Login() {
           </fieldset>
         </form>
       </div>
-      <footer className="px-6 pb-8 text-center text-xs leading-relaxed text-muted-foreground">Prototipo con datos ficticios. Sin conexión bancaria.</footer>
+       <footer className="px-6 pb-8 text-center text-xs leading-relaxed text-muted-foreground">
+        <p>Prototipo con datos ficticios. Sin conexión bancaria.</p>
+        <a href="/privacidad" className="mt-2 inline-block underline">
+          Política de privacidad
+        </a>
+      </footer>
     </div>
   );
 }
