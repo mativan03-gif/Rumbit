@@ -53,6 +53,26 @@ function Login() {
       window.history.replaceState(window.history.state, "", window.location.pathname);
     }
   }, []);
+  const signInWithGoogle = async () => {
+    const client = getAuthClient();
+    if (!client) {
+      toast.error("El acceso con Google no está disponible.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error } = await client.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: new URL("/", window.location.origin).href },
+      });
+      if (error) toast.error(authErrorMessage(error.code));
+    } catch {
+      toast.error(authErrorMessage());
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const enter = async (mode: "login" | "signup" | "reset" | "update") => {
     const client = getAuthClient();
@@ -145,6 +165,14 @@ function Login() {
             </Button>
             {!recovering && (
               <>
+                  <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full"
+                  onClick={() => void signInWithGoogle()}
+                >
+                  Continuar con Google
+                </Button>
                 <Button type="button" variant="ghost" className="w-full" onClick={() => void enter("reset")}>Recuperar contraseña</Button>
                 <Button type="button" variant="soft" className="h-11 w-full" onClick={() => void enter("signup")}>Crear cuenta</Button>
                 <Button type="button" variant="ghost" className="w-full" onClick={actions.startDemo}>Continuar como invitado</Button>
