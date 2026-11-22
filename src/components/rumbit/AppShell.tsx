@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings, ShieldCheck, Gamepad2 } from "lucide-react";
+import { BarChart3, Home, Lightbulb, ListOrdered, PiggyBank, Settings, ShieldCheck, Gamepad2, LogOut } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { actions as sessionActions, useApp } from "@/lib/store";
 import { toast } from "sonner";
@@ -52,7 +52,33 @@ export function AppShell({ title, actions, children }: { title: string; actions?
             </Link>
           ))}
         </nav>
-         <div className="mt-auto flex items-start gap-2 border-t border-border px-3 pt-6 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" /><p>{session.guest && <>Modo de demostración.<br /></>}Sin conexión bancaria.</p></div>
+         
+<div className="mt-auto border-t border-border pt-6">
+  <div className="flex items-start gap-2 px-3 text-xs leading-relaxed text-muted-foreground">
+    <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
+    <p>
+      {session.guest && <>Modo de demostración.<br /></>}
+      Sin conexión bancaria.
+    </p>
+  </div>
+
+  <Button
+    variant="outline"
+    className="mt-4 w-full justify-start gap-2"
+    disabled={saving}
+    onClick={async () => {
+      if (await sessionActions.logout()) {
+        toast.success("Sesión cerrada");
+        void navigate({ to: "/", replace: true });
+      } else {
+        toast.error("No pudimos cerrar la sesión. Volvé a intentar.");
+      }
+    }}
+  >
+    <LogOut className="h-4 w-4" />
+    Cerrar sesión
+  </Button>
+</div>
       </aside>
 
        <main className="min-w-0 pb-24 md:pb-12 md:pl-64">
