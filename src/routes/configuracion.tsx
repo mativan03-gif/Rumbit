@@ -82,6 +82,9 @@ function Settings() {
             <div className="h-fit rounded-xl bg-success-soft p-2.5 text-success"><ShieldCheck className="h-6 w-6" /></div>
             <div>
               <h2 className="font-semibold">Tu dinero, tu control</h2>
+              <a href="/privacidad" className="mt-2 inline-block text-sm text-primary underline">
+                Política de privacidad
+              </a>
               <p className="mt-1 text-sm text-muted-foreground">RUMBIT organiza la información que registrás. No necesita acceder a tus cuentas bancarias ni realizar operaciones financieras.</p>
             </div>
           </div>
