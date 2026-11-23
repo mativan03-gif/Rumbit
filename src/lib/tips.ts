@@ -36,7 +36,7 @@ export function buildTips(txs: Tx[], goals: Goal[], money: (n: number) => string
     const cut = Math.round(cats[0].value * 0.15);
     tips.push({ title: `Acercate a "${g.name}"`, text: `Si reducís un 15% tus gastos de ${cats[0].name.toLowerCase()}, podrías sumar ${money(cut)} por mes a tu meta.`, tone: "success" });
   }
-  if (t.available > 0) tips.push({ title: "Disponible estimado", text: `Te quedan ${money(t.available)} estimados. Considerá apartar el 20% (${money(Math.round(t.available * 0.2))}).`, tone: "info" });
+  if (t.available > 0) tips.push({ title: "Saldo", text: `Te quedan ${money(t.available)} estimados. Considerá apartar el 20% (${money(Math.round(t.available * 0.2))}).`, tone: "info" });
   return tips;
 }
 

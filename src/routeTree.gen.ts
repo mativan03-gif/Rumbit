@@ -10,17 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BienvenidaRouteImport } from './routes/bienvenida'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as EstadisticasRouteImport } from './routes/estadisticas'
 import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as JugarConRumiRouteImport } from './routes/jugar-con-rumi'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimientosRouteImport } from './routes/movimientos'
+import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as RecomendacionesRouteImport } from './routes/recomendaciones'
+import { Route as TutorialRouteImport } from './routes/tutorial'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BienvenidaRoute = BienvenidaRouteImport.update({
+  id: '/bienvenida',
+  path: '/bienvenida',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracionRoute = ConfiguracionRouteImport.update({
@@ -53,85 +61,116 @@ const MovimientosRoute = MovimientosRouteImport.update({
   path: '/movimientos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecomendacionesRoute = RecomendacionesRouteImport.update({
   id: '/recomendaciones',
   path: '/recomendaciones',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TutorialRoute = TutorialRouteImport.update({
+  id: '/tutorial',
+  path: '/tutorial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bienvenida': typeof BienvenidaRoute
   '/configuracion': typeof ConfiguracionRoute
   '/estadisticas': typeof EstadisticasRoute
   '/inicio': typeof InicioRoute
   '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/recomendaciones': typeof RecomendacionesRoute
+  '/tutorial': typeof TutorialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bienvenida': typeof BienvenidaRoute
   '/configuracion': typeof ConfiguracionRoute
   '/estadisticas': typeof EstadisticasRoute
   '/inicio': typeof InicioRoute
   '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/recomendaciones': typeof RecomendacionesRoute
+  '/tutorial': typeof TutorialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bienvenida': typeof BienvenidaRoute
   '/configuracion': typeof ConfiguracionRoute
   '/estadisticas': typeof EstadisticasRoute
   '/inicio': typeof InicioRoute
   '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/recomendaciones': typeof RecomendacionesRoute
+  '/tutorial': typeof TutorialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/bienvenida'
     | '/configuracion'
     | '/estadisticas'
     | '/inicio'
     | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
+    | '/privacidad'
     | '/recomendaciones'
+    | '/tutorial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/bienvenida'
     | '/configuracion'
     | '/estadisticas'
     | '/inicio'
     | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
+    | '/privacidad'
     | '/recomendaciones'
+    | '/tutorial'
   id:
     | '__root__'
     | '/'
+    | '/bienvenida'
     | '/configuracion'
     | '/estadisticas'
     | '/inicio'
     | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
+    | '/privacidad'
     | '/recomendaciones'
+    | '/tutorial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BienvenidaRoute: typeof BienvenidaRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
   EstadisticasRoute: typeof EstadisticasRoute
   InicioRoute: typeof InicioRoute
   JugarConRumiRoute: typeof JugarConRumiRoute
   MetasRoute: typeof MetasRoute
   MovimientosRoute: typeof MovimientosRoute
+  PrivacidadRoute: typeof PrivacidadRoute
   RecomendacionesRoute: typeof RecomendacionesRoute
+  TutorialRoute: typeof TutorialRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bienvenida': {
+      id: '/bienvenida'
+      path: '/bienvenida'
+      fullPath: '/bienvenida'
+      preLoaderRoute: typeof BienvenidaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracion': {
@@ -185,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MovimientosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recomendaciones': {
       id: '/recomendaciones'
       path: '/recomendaciones'
@@ -192,18 +245,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecomendacionesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tutorial': {
+      id: '/tutorial'
+      path: '/tutorial'
+      fullPath: '/tutorial'
+      preLoaderRoute: typeof TutorialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BienvenidaRoute: BienvenidaRoute,
   ConfiguracionRoute: ConfiguracionRoute,
   EstadisticasRoute: EstadisticasRoute,
   InicioRoute: InicioRoute,
   JugarConRumiRoute: JugarConRumiRoute,
   MetasRoute: MetasRoute,
   MovimientosRoute: MovimientosRoute,
+  PrivacidadRoute: PrivacidadRoute,
   RecomendacionesRoute: RecomendacionesRoute,
+  TutorialRoute: TutorialRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

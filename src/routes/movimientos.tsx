@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Camera, Pencil, Plus, Search, Trash2 } fr
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
+import { ExpenseShortcuts } from "@/components/rumbit/ExpenseShortcuts";
 import { TxDialog } from "@/components/rumbit/Dialogs";
 import {
   AlertDialog,
@@ -21,10 +22,10 @@ import { formatDate, INCOME_CATEGORY, txTitle, type Tx, type TxType } from "@/li
 import { actions, useApp, useMoney } from "@/lib/store";
 
 type MovementFilters = {
-  type?: TxType;
-  category?: string;
-  from?: string;
-  to?: string;
+  type?: TxType | undefined;
+  category?: string | undefined;
+  from?: string | undefined;
+  to?: string | undefined;
 };
 
 function readDate(value: unknown) {
@@ -33,10 +34,10 @@ function readDate(value: unknown) {
 
 export const Route = createFileRoute("/movimientos")({
   validateSearch: (search: Record<string, unknown>): MovementFilters => ({
-    type: search.type === "expense" || search.type === "income" ? search.type : undefined,
-    category: typeof search.category === "string" && search.category ? search.category : undefined,
-    from: readDate(search.from),
-    to: readDate(search.to),
+    type: search["type"] === "expense" || search["type"] === "income" ? search["type"] : undefined,
+    category: typeof search["category"] === "string" && search["category"] ? search["category"] : undefined,
+    from: readDate(search["from"]),
+    to: readDate(search["to"]),
   }),
   head: () => ({
     meta: [
@@ -89,6 +90,7 @@ function Movements() {
         </Button>
       }
     >
+      <ExpenseShortcuts />
       <Panel className="mb-5">
         <div className="grid gap-3 md:grid-cols-4">
           <div className="relative md:col-span-1">
@@ -133,6 +135,12 @@ function Movements() {
             {type && (
               <span className="rounded-input bg-muted px-3 py-1 text-sm">
                 Tipo: {type === "expense" ? "Gasto" : "Ingreso"}
+              </span>
+            )}
+            {cat && <span className="rounded-input bg-muted px-3 py-1 text-sm">Categoría: {cat}</span>}
+            {(from || to) && (
+              <span className="rounded-input bg-muted px-3 py-1 text-sm">
+                Fechas: {from ? formatDate(from) : "inicio"} – {to ? formatDate(to) : "hoy"}
               </span>
             )}
             <Button
@@ -209,7 +217,7 @@ function Movements() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { if (del) actions.deleteTx(del.id); toast.success("Movimiento eliminado"); }}>
+            <AlertDialogAction onClick={async () => { if (del && await actions.deleteTx(del.id)) toast.success("Movimiento eliminado"); }}>
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

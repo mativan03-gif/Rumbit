@@ -26,16 +26,17 @@ function Settings() {
   const userName = useApp((s) => s.userName);
   const currency = useApp((s) => s.currency);
   const categories = useApp((s) => s.categories);
+  const saving = useApp((s) => s.saving);
   const session = useApp((s) => s.session);
   const [name, setName] = useState(userName);
   const [newCat, setNewCat] = useState("");
   useEffect(() => setName(userName), [userName]);
 
-  const addCat = () => {
+  const addCat = async () => {
     const c = newCat.trim();
     if (!c) { toast.error("Escribí un nombre de categoría."); return; }
     if (categories.some((x) => x.toLowerCase() === c.toLowerCase())) { toast.error("Esa categoría ya existe."); return; }
-    actions.setCategories([...categories, c]);
+    if (!(await actions.setCategories([...categories, c]))) return;
     setNewCat("");
     toast.success("Categoría agregada");
   };
@@ -47,11 +48,11 @@ function Settings() {
           <Label htmlFor="uname">Nombre de usuario</Label>
           <div className="mt-1.5 flex gap-2">
             <Input id="uname" value={name} onChange={(e) => setName(e.target.value)} maxLength={30} />
-            <Button variant="hero" onClick={() => { if (!name.trim()) { toast.error("El nombre no puede estar vacío."); return; } actions.setName(name.trim()); toast.success("Nombre actualizado"); }}>Guardar</Button>
+            <Button variant="hero" disabled={saving} onClick={async () => { if (!name.trim()) { toast.error("El nombre no puede estar vacío."); return; } if (await actions.setName(name.trim())) toast.success("Nombre actualizado"); }}>Guardar</Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">{session?.guest ? "Sesión de invitado" : session?.email}</p>
           <Label className="mt-5 block">Moneda</Label>
-          <Select value={currency} onValueChange={(v) => { actions.setCurrency(v); toast.success(`Moneda cambiada a ${v}`); }}>
+          <Select disabled={saving} value={currency} onValueChange={async (v) => { if (await actions.setCurrency(v)) toast.success(`Moneda cambiada a ${v}`); }}>
             <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ARS">Peso argentino (ARS)</SelectItem>
@@ -66,13 +67,13 @@ function Settings() {
             {categories.map((c) => (
               <span key={c} className="inline-flex max-w-full items-center gap-1 rounded-input bg-muted pl-3 text-sm text-foreground">
                 {c}
-                <Button size="icon" variant="ghost" title={`Quitar ${c}`} aria-label={`Quitar ${c}`} onClick={() => { if (categories.length <= 1) { toast.error("Necesitás al menos una categoría."); return; } actions.setCategories(categories.filter((x) => x !== c)); toast.success("Categoría eliminada"); }}><X className="h-3.5 w-3.5" /></Button>
+                <Button size="icon" variant="ghost" title={`Quitar ${c}`} aria-label={`Quitar ${c}`} disabled={saving} onClick={async () => { if (categories.length <= 1) { toast.error("Necesitás al menos una categoría."); return; } if (await actions.setCategories(categories.filter((x) => x !== c))) toast.success("Categoría eliminada"); }}><X className="h-3.5 w-3.5" /></Button>
               </span>
             ))}
           </div>
           <div className="mt-4 flex gap-2">
             <Input aria-label="Nueva categoría" placeholder="Nueva categoría" value={newCat} onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCat()} maxLength={24} />
-            <Button variant="soft" onClick={addCat}>Agregar</Button>
+            <Button variant="soft" disabled={saving} onClick={addCat}>Agregar</Button>
           </div>
         </Panel>
 
@@ -81,6 +82,9 @@ function Settings() {
             <div className="h-fit rounded-xl bg-success-soft p-2.5 text-success"><ShieldCheck className="h-6 w-6" /></div>
             <div>
               <h2 className="font-semibold">Tu dinero, tu control</h2>
+              <a href="/privacidad" className="mt-2 inline-block text-sm text-primary underline">
+                Política de privacidad
+              </a>
               <p className="mt-1 text-sm text-muted-foreground">RUMBIT organiza la información que registrás. No necesita acceder a tus cuentas bancarias ni realizar operaciones financieras.</p>
             </div>
           </div>
@@ -88,8 +92,8 @@ function Settings() {
 
         <Panel title="Sesión">
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => { actions.resetDemo(); toast.success("Datos demostrativos restaurados"); }}>Restaurar datos demo</Button>
-            <Button variant="destructive" onClick={() => { actions.logout(); toast.success("Sesión cerrada"); navigate({ to: "/" }); }}><LogOut />Cerrar sesión</Button>
+            {session?.guest && <Button variant="outline" onClick={() => { actions.resetDemo(); toast.success("Datos demostrativos restaurados"); }}>Restaurar datos demo</Button>}
+            <Button variant="destructive" disabled={saving} onClick={async () => { if (await actions.logout()) { toast.success("Sesión cerrada"); void navigate({ to: "/", replace: true }); } else { toast.error("No pudimos cerrar la sesión. Volvé a intentar."); } }}><LogOut />Cerrar sesión</Button>
           </div>
         </Panel>
       </div>

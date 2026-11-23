@@ -236,6 +236,13 @@ h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:600}
 @keyframes evoBackdrop{0%{opacity:0}15%,75%{opacity:1}100%{opacity:0}}
 @keyframes evoCard{0%{transform:scale(.55) rotate(-8deg)}20%{transform:scale(1.1) rotate(2deg)}35%,75%{transform:scale(1)}100%{transform:scale(.9)}}
 @media(prefers-reduced-motion:reduce){.evo-flash,.evo-flash-card{animation:none}}
+
+/* Academia financiera: ampliación sin modificar las mecánicas originales */
+.learn-panel{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px}
+.learn-panel h2{font-size:22px;margin:0 0 5px}.learn-muted{color:var(--ink-2);font-size:13px;margin:0 0 14px}
+.learn-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.learn-tab{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:9px 12px;border-radius:12px;font-weight:700;cursor:pointer}.learn-tab[aria-selected="true"]{background:#eee5ff;border-color:#a78bfa;color:#432084}
+.learn-progress{font-size:13px;font-weight:700;color:var(--violet-ink);margin:0 0 12px}.learn-lessons{display:grid;gap:9px}.learn-lesson{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--surface-2)}.learn-lesson summary{cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:10px}.learn-lesson summary::marker{color:var(--violet-ink)}.learn-lesson p{font-size:14px;line-height:1.5;margin:10px 0}.learn-question{font-weight:700;font-size:14px}.learn-options{display:grid;gap:7px;margin:10px 0}.learn-choice{display:block;text-align:left;width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:9px 11px;color:var(--ink);cursor:pointer}.learn-choice:hover,.learn-choice:focus-visible{outline:2px solid #a78bfa}.learn-choice:disabled{cursor:default;opacity:.85}.learn-feedback{font-size:13px;font-weight:700;min-height:18px}.learn-done{color:#25765b}.learn-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.learn-badge{border-radius:12px;padding:9px;background:var(--surface-2);font-size:12px;font-weight:700}.learn-badge.earned{background:#d9f7e8;color:#145a42}
+
 /* ---------- 5. El gatito (SVG) ---------- */
 .pet{display:block;width:100%;height:auto;overflow:visible}
 .pet .shadow{fill:var(--shadow-pet)}
@@ -629,6 +636,14 @@ h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:600}
         <div class="mission-list" id="missionList"></div>
         <div class="record-pill" id="recordPill">🏆 Récord: 0 puntos</div>
       </section>
+      <section class="learn-panel" id="academiaRumi" aria-labelledby="learnTitle">
+        <h2 id="learnTitle">📚 Aprendé con Rumi</h2>
+        <p class="learn-muted">Consejos cortos, preguntas y XP. Completá cada lección una sola vez para ganar experiencia.</p>
+        <div class="learn-tabs" id="learnTabs" role="tablist" aria-label="Temas de educación financiera"></div>
+        <p class="learn-progress" id="learnProgress" aria-live="polite"></p>
+        <div class="learn-lessons" id="learnLessons"></div>
+        <div class="learn-badges" id="learnBadges" aria-label="Insignias de aprendizaje"></div>
+      </section>
       <section class="tip" aria-labelledby="tipTitle">
         <svg class="tip-coin" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#ffc83d" stroke="#c98400" stroke-width="2"/><circle cx="16" cy="16" r="10" fill="none" stroke="#b87800" stroke-width="1.4" opacity=".55"/><text x="16" y="22" text-anchor="middle" font-family="Fredoka, system-ui, sans-serif" font-weight="700" font-size="16" fill="#8a5a00">R</text></svg>
         <div>
@@ -761,6 +776,23 @@ const MISSIONS = [
   {id:'play',title:'Jugá con Rumi',detail:'Terminá una partida de monedas',xp:15,icon:'🪙'},
   {id:'save',title:'Avanzá en una meta',detail:'Registrá un aporte de ahorro',xp:20,icon:'🎯'},
 ];
+const LEARN_TOPICS = [
+  {id:'ahorro',label:'🐷 Ahorro',badge:'🏅 Primer ahorro'},
+  {id:'presupuesto',label:'📒 Presupuesto',badge:'🏅 Planificador'},
+  {id:'consumo',label:'🛒 Consumo',badge:'🏅 Compra consciente'},
+];
+const LEARN_LESSONS = [
+  {id:'a1',topic:'ahorro',title:'Empezá de a poco',tip:'No necesitás una suma grande para empezar. Separar un monto pequeño de forma regular ayuda a crear el hábito.',q:'¿Qué hábito ayuda a ahorrar de forma constante?',options:['Esperar a que sobre dinero','Separar un monto posible regularmente','Dejar de anotar los gastos'],correct:1},
+  {id:'a2',topic:'ahorro',title:'Fondo de emergencia',tip:'Un fondo de emergencia sirve para afrontar gastos imprevistos sin depender inmediatamente de una deuda. El objetivo depende de tus necesidades.',q:'¿Para qué sirve un fondo de emergencia?',options:['Para gastos inesperados','Para comprar por impulso','Para gastar más de lo que gano'],correct:0},
+  {id:'a3',topic:'ahorro',title:'Metas alcanzables',tip:'Una meta de ahorro clara incluye un monto, un motivo y un plazo estimado. Dividirla en pasos facilita el seguimiento.',q:'¿Cuál es una meta más clara?',options:['Ahorrar algo algún día','Comprar muchas cosas','Ahorrar $30.000 en tres meses para un curso'],correct:2},
+  {id:'p1',topic:'presupuesto',title:'Ingresos y gastos',tip:'Un presupuesto compara el dinero que entra con el que sale. Registrarlo permite decidir con más información.',q:'¿Qué información necesitás para armar un presupuesto?',options:['Solo los ingresos','Ingresos y gastos','Solo las compras grandes'],correct:1},
+  {id:'p2',topic:'presupuesto',title:'Necesidades y deseos',tip:'Distinguir gastos necesarios de los opcionales ayuda a priorizar. Las categorías dependen de la situación de cada persona.',q:'Si tu dinero es limitado, ¿qué conviene priorizar?',options:['Los gastos esenciales','Las compras impulsivas','Lo que está de moda'],correct:0},
+  {id:'p3',topic:'presupuesto',title:'Revisá y ajustá',tip:'Un presupuesto es una guía flexible. Revisarlo periódicamente ayuda a detectar desvíos y adaptarse a cambios.',q:'¿Qué hacés si gastaste más de lo previsto?',options:['Ignorarlo','Dejar de registrar','Revisar las categorías y ajustar el plan'],correct:2},
+  {id:'c1',topic:'consumo',title:'Gastos hormiga',tip:'Los gastos pequeños y frecuentes pueden sumar mucho al final del mes. Identificarlos ayuda a decidir cuáles conservar.',q:'¿Cómo detectás gastos hormiga?',options:['Registrando los gastos pequeños','Mirando solo las compras grandes','Evitando revisar movimientos'],correct:0},
+  {id:'c2',topic:'consumo',title:'Compará antes de comprar',tip:'Antes de elegir, compará precio final, calidad, necesidad y condiciones. Una oferta no siempre significa ahorro.',q:'¿Qué conviene comparar antes de comprar?',options:['Solo el descuento anunciado','Precio final y condiciones','Solo el color del producto'],correct:1},
+  {id:'c3',topic:'consumo',title:'Pausa antes de comprar',tip:'Si una compra no es urgente, darte tiempo para pensar puede ayudarte a distinguir una necesidad de un impulso.',q:'¿Qué puede ayudarte ante una compra impulsiva?',options:['Comprar de inmediato','Usar crédito sin revisar','Esperar y evaluar si realmente la necesitás'],correct:2},
+];
+let learnTopic = 'ahorro';
 const IDLE_LINES = ['¡Miau! ¿Revisamos cómo van tus metas?', 'Si hoy ahorraste algo, aunque sea poquito, ya avanzaste.', 'Estoy cuidando tus metas mientras vos seguís con tu día.', 'Cada ahorro, por pequeño que sea, suma.', 'Hoy es un buen día para apartar un poquito.', 'Las metas se cumplen de a un paso por vez.', 'Estoy contento de acompañarte.', 'Ahorrar tiene más sentido con un objetivo claro.', 'La constancia es mi moneda favorita.'];
 const HEART_COLORS = ['#a78bfa', '#7c4dff', '#2fd6a0', '#c4a6ff'];
 const SPARK_COLORS = ['#ffc83d', '#a78bfa', '#2fd6a0', '#7c4dff'];
@@ -838,6 +870,7 @@ function defaultState() {
     lastUpdate: Date.now(),
     goals: [],                                  // { id, name, target, saved, rewarded }
     bestScore: 0,
+    learned: [],
     daily: {date: '', completed: []},
     equipped: { neck: null, face: null, head: null },
   };
@@ -859,6 +892,7 @@ function sanitize(raw) {
   s.stage = Math.round(num(raw.stage, 1, STAGES.length, 1));
   s.sleeping = raw.sleeping === true;
   s.bestScore = Math.round(num(raw.bestScore, 0, 1000000, 0));
+  s.learned = Array.isArray(raw.learned) ? [...new Set(raw.learned.filter(id => typeof id === "string" && LEARN_LESSONS.some(l => l.id === id)))].slice(0,9) : [];
   if (raw.daily && typeof raw.daily === 'object') {
     s.daily.date = String(raw.daily.date || '').slice(0,10);
     s.daily.completed = Array.isArray(raw.daily.completed) ? raw.daily.completed.filter(x=>MISSIONS.some(m=>m.id===x)).slice(0,3) : [];
@@ -1122,7 +1156,54 @@ function showEvolution(st){
   setTimeout(()=>layer.remove(),2800);
 }
 function renderAll() {
-  renderStats(); renderLevel(); renderEvolution(); renderGoals(); renderAccessories(); renderButtons(); renderMood(); renderMissions();
+  renderStats(); renderLevel(); renderEvolution(); renderGoals(); renderAccessories(); renderButtons(); renderMood(); renderMissions(); renderLearning();
+}
+
+
+/* =========================================================
+   ACADEMIA DE RUMI: progreso guardado en el estado existente
+   ========================================================= */
+function renderLearning() {
+  const tabs = $('learnTabs'), list = $('learnLessons'), badges = $('learnBadges');
+  if (!tabs || !list || !badges) return;
+  tabs.replaceChildren(); list.replaceChildren(); badges.replaceChildren();
+  for (const topic of LEARN_TOPICS) {
+    const active = learnTopic === topic.id;
+    const btn = h('button',{type:'button',class:'learn-tab',text:topic.label});
+    btn.setAttribute('role','tab'); btn.setAttribute('aria-selected',String(active));
+    btn.addEventListener('click',()=>{learnTopic=topic.id;renderLearning();});
+    tabs.append(btn);
+  }
+  const topicLessons = LEARN_LESSONS.filter(l=>l.topic===learnTopic);
+  const done = topicLessons.filter(l=>state.learned.includes(l.id)).length;
+  $('learnProgress').textContent=`${done} de ${topicLessons.length} lecciones completadas · ${state.learned.length} de 9 en total`;
+  for (const lesson of topicLessons) {
+    const completed = state.learned.includes(lesson.id);
+    const details = h('details',{class:'learn-lesson'});
+    details.append(h('summary',{text:`${completed?'✅':'📖'} ${lesson.title} ${completed?'· Completada':'· +12 XP'}`}));
+    details.append(h('p',{text:lesson.tip}),h('div',{class:'learn-question',text:lesson.q}));
+    const options = h('div',{class:'learn-options'});
+    const feedback = h('div',{class:'learn-feedback'});
+    feedback.setAttribute('aria-live','polite');
+    if(completed){feedback.textContent='✓ Lección completada. Podés repasarla cuando quieras.';feedback.classList.add('learn-done');}
+    else lesson.options.forEach((option,index)=>{
+      const button=h('button',{type:'button',class:'learn-choice',text:option});
+      button.addEventListener('click',()=>{
+        if(state.learned.includes(lesson.id)) return;
+        if(index!==lesson.correct){feedback.textContent='Todavía no. Volvé a leer el consejo e intentá otra vez.';return;}
+        state.learned.push(lesson.id); save(true); addXP(12);
+        const topicCompleted = LEARN_LESSONS.filter(l=>l.topic===lesson.topic).every(l=>state.learned.includes(l.id));
+        toast(topicCompleted?'¡Insignia desbloqueada! +12 XP':'¡Muy bien! +12 XP por aprender','unlock');
+        setMood('happy',1800); renderLearning();
+      });
+      options.append(button);
+    });
+    details.append(options,feedback);list.append(details);
+  }
+  for (const topic of LEARN_TOPICS){
+    const earned = LEARN_LESSONS.filter(l=>l.topic===topic.id).every(l=>state.learned.includes(l.id));
+    badges.append(h('span',{class:'learn-badge'+(earned?' earned':''),text:`${earned?'🏆':'🔒'} ${topic.badge}`}));
+  }
 }
 
 /* =========================================================
