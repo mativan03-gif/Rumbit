@@ -4,6 +4,8 @@ import { getAuthClient } from "./auth";
 import { newAccountData, parseAccountData, type AccountData } from "./account-data";
 import { toast } from "sonner";
 
+import type { Budget, ExpenseShortcut, PlannedPayment } from "./planning";
+
 export type Session =
   | { email: string; guest: true }
   | { email: string; guest: false; userId: string }
@@ -16,10 +18,15 @@ export type State = {
   accountStatus: "loading" | "ready" | "error";
   saving: boolean;
   userName: string;
-  currency: string;
+  currency: AccountData["currency"];
   categories: string[];
   txs: Tx[];
   goals: Goal[];
+  budgets: Budget[];
+  payments: PlannedPayment[];
+  shortcuts: ExpenseShortcut[];
+  reviewedWeeks: string[];
+  accessory: "scarf" | null;
 };
 
 const DEMO_KEY = "rumbit-demo-state-v2";
@@ -36,6 +43,11 @@ const initial: State = {
   categories: DEFAULT_CATEGORIES,
   txs: SAMPLE_TXS,
   goals: SAMPLE_GOALS,
+  budgets: newAccountData.budgets,
+  payments: newAccountData.payments,
+  shortcuts: newAccountData.shortcuts,
+  reviewedWeeks: newAccountData.reviewedWeeks,
+  accessory: newAccountData.accessory,
 };
 
 let state = initial;
@@ -44,9 +56,8 @@ const listeners = new Set<() => void>();
 function set(patch: Partial<State> | ((s: State) => Partial<State>)) {
   state = { ...state, ...(typeof patch === "function" ? patch(state) : patch) };
   if (state.session?.guest) {
-    const { userName, currency, categories, txs, goals } = state;
     try {
-      localStorage.setItem(DEMO_KEY, JSON.stringify({ userName, currency, categories, txs, goals }));
+      localStorage.setItem(DEMO_KEY, JSON.stringify(parseAccountData(state)));
     } catch {
       // The demo still works for this visit if storage is unavailable.
     }
@@ -216,15 +227,10 @@ export function hydrate() {
 }
 
 function startDemo() {
-  const saved = { userName: initial.userName, currency: initial.currency,
-    categories: initial.categories, txs: initial.txs, goals: initial.goals };
+  let saved = parseAccountData(initial);
   try {
-    const raw = JSON.parse(localStorage.getItem(DEMO_KEY) ?? "null");
-    if (raw && typeof raw.userName === "string" && typeof raw.currency === "string"
-      && Array.isArray(raw.categories) && Array.isArray(raw.txs) && Array.isArray(raw.goals)) {
-      Object.assign(saved, { userName: raw.userName, currency: raw.currency,
-        categories: raw.categories, txs: raw.txs, goals: raw.goals });
-    }
+    const raw = localStorage.getItem(DEMO_KEY);
+    if (raw) saved = parseAccountData(JSON.parse(raw));
   } catch {
     // An unavailable demo snapshot falls back to sample records.
   }
@@ -274,7 +280,10 @@ export const actions = {
     }
   },
   setName: (userName: string) => saveData(() => ({ userName })),
-  setCurrency: (currency: string) => saveData(() => ({ currency })),
+  setCurrency: (currency: string) => {
+    if (currency !== "ARS" && currency !== "USD" && currency !== "EUR") return Promise.resolve(false);
+    return saveData(() => ({ currency }));
+  },
   setCategories: (categories: string[]) => saveData(() => ({ categories })),
   saveTx: (t: Omit<Tx, "id"> & { id?: string | undefined }) =>
     saveData((s) => ({
@@ -291,6 +300,48 @@ export const actions = {
   resetDemo: () => {
     if (state.session?.guest) set({ txs: SAMPLE_TXS, goals: SAMPLE_GOALS, categories: DEFAULT_CATEGORIES });
   },
+  saveBudget: (budget: Budget) => saveData((s) => ({
+    budgets: [...s.budgets.filter((item) =>
+      item.category !== budget.category || item.currency !== budget.currency), budget],
+  })),
+  deleteBudget: (budget: Budget) => saveData((s) => ({
+    budgets: s.budgets.filter((item) =>
+      item.category !== budget.category || item.currency !== budget.currency),
+  })),
+  addPayment: (payment: Omit<PlannedPayment, "id" | "paid">) => saveData((s) => ({
+    payments: [...s.payments, { ...payment, id: uid(), paid: false }],
+  })),
+  togglePayment: (id: string) => saveData((s) => ({
+    payments: s.payments.map((payment) =>
+      payment.id === id ? { ...payment, paid: !payment.paid } : payment),
+  })),
+  deletePayment: (id: string) => saveData((s) => ({
+    payments: s.payments.filter((payment) => payment.id !== id),
+  })),
+  addShortcut: (shortcut: ExpenseShortcut) => {
+    const exists = state.shortcuts.some((item) =>
+      item.category === shortcut.category &&
+      item.description.toLocaleLowerCase("es-AR") === shortcut.description.toLocaleLowerCase("es-AR"));
+    if (exists) {
+      toast.error("Ese acceso rápido ya existe.");
+      return Promise.resolve(false);
+    }
+    return saveData((s) => ({ shortcuts: [...s.shortcuts, shortcut] }));
+  },
+  deleteShortcut: (shortcut: ExpenseShortcut) => saveData((s) => ({
+    shortcuts: s.shortcuts.filter((item) => item.category !== shortcut.category || item.description !== shortcut.description),
+  })),
+  completeReview: (week: string) => {
+    if (!state.reviewedWeeks.includes(week)) {
+      return saveData((s) => ({ reviewedWeeks: [...s.reviewedWeeks, week] }));
+    }
+    return Promise.resolve(true);
+  },
+  setAccessory: (accessory: State["accessory"]) => {
+    if (accessory !== null && state.reviewedWeeks.length === 0) return Promise.resolve(false);
+    return saveData(() => ({ accessory }));
+  },
+
 };
 
 export const useMoney = () => {

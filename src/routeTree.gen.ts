@@ -16,6 +16,7 @@ import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as JugarConRumiRouteImport } from './routes/jugar-con-rumi'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimientosRouteImport } from './routes/movimientos'
+import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as RecomendacionesRouteImport } from './routes/recomendaciones'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const MovimientosRoute = MovimientosRouteImport.update({
   path: '/movimientos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecomendacionesRoute = RecomendacionesRouteImport.update({
   id: '/recomendaciones',
   path: '/recomendaciones',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/recomendaciones': typeof RecomendacionesRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/recomendaciones': typeof RecomendacionesRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/jugar-con-rumi': typeof JugarConRumiRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
+  '/privacidad': typeof PrivacidadRoute
   '/recomendaciones': typeof RecomendacionesRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
+    | '/privacidad'
     | '/recomendaciones'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
+    | '/privacidad'
     | '/recomendaciones'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/jugar-con-rumi'
     | '/metas'
     | '/movimientos'
+    | '/privacidad'
     | '/recomendaciones'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   JugarConRumiRoute: typeof JugarConRumiRoute
   MetasRoute: typeof MetasRoute
   MovimientosRoute: typeof MovimientosRoute
+  PrivacidadRoute: typeof PrivacidadRoute
   RecomendacionesRoute: typeof RecomendacionesRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MovimientosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recomendaciones': {
       id: '/recomendaciones'
       path: '/recomendaciones'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   JugarConRumiRoute: JugarConRumiRoute,
   MetasRoute: MetasRoute,
   MovimientosRoute: MovimientosRoute,
+  PrivacidadRoute: PrivacidadRoute,
   RecomendacionesRoute: RecomendacionesRoute,
 }
 export const routeTree = rootRouteImport

@@ -77,7 +77,24 @@ test("saves account data, restores it on reentry, and starts a different account
   const { actions, hydrate, useApp } = await import("./store");
   const { result } = renderHook(() => useApp((state) => state));
   const snapshots = new Map<string, unknown>();
+  snapshots.set("first", {
+    revision: 1,
+    data: { userName: "Cuenta anterior", currency: "ARS", categories: ["Alimentación"], txs: [], goals: [] },
+  });
   const table = {
+    update: (row: { data: unknown; revision: number }) => ({
+      eq: (_column: string, id: string) => ({
+        eq: (_revisionColumn: string, revision: number) => ({
+          select: () => ({
+            maybeSingle: async () => {
+              expect(row.revision).toBe(revision + 1);
+              snapshots.set(id, row);
+              return { error: null, data: { revision: row.revision } };
+            },
+          }),
+        }),
+      }),
+    }),
     select: () => ({
       eq: (_column: string, id: string) => ({
         maybeSingle: async () => ({ error: null, data: snapshots.get(id) ?? null }),
@@ -97,6 +114,10 @@ test("saves account data, restores it on reentry, and starts a different account
 
   await act(async () => listener()("INITIAL_SESSION", firstUser));
   expect(result.current.accountStatus).toBe("ready");
+  expect(result.current.budgets).toEqual([]);
+  await act(async () => {
+    expect(await actions.saveBudget({ category: "Alimentación", limit: 1500, currency: "ARS" })).toBe(true);
+  });
   expect(result.current.txs).toEqual([]);
 
   await act(async () => {
@@ -112,10 +133,12 @@ test("saves account data, restores it on reentry, and starts a different account
   act(() => listener()("SIGNED_OUT", null));
   await act(async () => listener()("SIGNED_IN", firstUser));
   expect(result.current.txs[0]?.description).toBe("Almuerzo");
+  expect(result.current.budgets[0]?.limit).toBe(1500);
 
   await act(async () => listener()("SIGNED_IN", {
     user: { id: "second", email: "second@example.com" },
   } as Session));
   expect(result.current.txs).toEqual([]);
   expect(result.current.goals).toEqual([]);
+  expect(result.current.budgets).toEqual([]);
 });

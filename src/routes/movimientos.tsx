@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Camera, Pencil, Plus, Search, Trash2 } fr
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
+import { ExpenseShortcuts } from "@/components/rumbit/ExpenseShortcuts";
 import { TxDialog } from "@/components/rumbit/Dialogs";
 import {
   AlertDialog,
@@ -89,6 +90,7 @@ function Movements() {
         </Button>
       }
     >
+      <ExpenseShortcuts />
       <Panel className="mb-5">
         <div className="grid gap-3 md:grid-cols-4">
           <div className="relative md:col-span-1">

@@ -109,6 +109,9 @@ function Dashboard() {
               <p className="mt-3 text-sm text-accent-foreground">{rumbiMessage(goals)}</p>
             </Panel>
             {tip && <RumbiTip message={tip.text} />}
+            <Button asChild variant="outline" className="justify-self-start">
+              <Link to="/recomendaciones">Ver tu semana con Rumi</Link>
+            </Button>
           </div>
         </div>
       </div>
