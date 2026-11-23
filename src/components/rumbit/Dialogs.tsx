@@ -9,24 +9,24 @@ import { INCOME_CATEGORY, validateTx, type Goal, type Tx, type TxType } from "@/
 import { actions, useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const today = () => new Date().toISOString().slice(0, 10);
+import { localDateKey, type ExpenseShortcut } from "@/lib/planning";
 
-export function TxDialog({ open, onOpenChange, tx, defaultType = "expense" }: { open: boolean; onOpenChange: (o: boolean) => void; tx?: Tx | null; defaultType?: TxType }) {
+export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shortcut }: { open: boolean; onOpenChange: (o: boolean) => void; tx?: Tx | null; defaultType?: TxType; shortcut?: ExpenseShortcut | null }) {
   const categories = useApp((s) => s.categories);
   const [type, setType] = useState<TxType>(defaultType);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(localDateKey);
 
   useEffect(() => {
     if (!open) return;
     setType(tx?.type ?? defaultType);
     setAmount(tx ? String(tx.amount) : "");
-    setDescription(tx?.description ?? "");
-    setCategory(tx?.category ?? "");
-    setDate(tx?.date ?? today());
-  }, [open, tx, defaultType]);
+    setDescription(tx?.description ?? shortcut?.description ?? "");
+    setCategory(tx?.category ?? (shortcut && categories.includes(shortcut.category) ? shortcut.category : ""));
+    setDate(tx?.date ?? localDateKey());
+  }, [open, tx, defaultType, shortcut, categories]);
 
   const cats = type === "income" ? [INCOME_CATEGORY, ...categories] : categories;
 

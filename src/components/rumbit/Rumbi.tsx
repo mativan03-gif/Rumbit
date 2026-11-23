@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
-export function Rumbi({ className }: { className?: string }) {
+export function Rumbi({ className, scarf = false }: { className?: string; scarf?: boolean }) {
   return (
-    <svg viewBox="0 0 120 120" className={cn("animate-float", className)} aria-label="Rumbi, la mascota de RUMBIT" role="img">
+    <svg viewBox="0 0 120 120" className={cn("animate-float", className)} aria-label="Rumi, la mascota de Rumbit" role="img">
       <line x1="60" y1="14" x2="60" y2="28" className="stroke-secondary" strokeWidth="4" strokeLinecap="round" />
       <circle cx="60" cy="12" r="6" className="fill-warning" />
       <rect x="22" y="28" width="76" height="60" rx="22" className="fill-primary" />
@@ -15,6 +15,7 @@ export function Rumbi({ className }: { className?: string }) {
       <circle cx="60" cy="97" r="5" className="fill-warning" />
       <rect x="12" y="50" width="10" height="20" rx="5" className="fill-secondary" />
       <rect x="98" y="50" width="10" height="20" rx="5" className="fill-secondary" />
+      {scarf && <path d="M34 84 H86 V94 H70 L76 111 H65 L59 94 H34 Z" className="fill-warning" />}
     </svg>
   );
 }
