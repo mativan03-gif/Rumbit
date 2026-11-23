@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, Lightbulb, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/rumbit/AppShell";
-import { Rumbi } from "@/components/rumbit/Rumbi";
+import { WeeklyReview } from "@/components/rumbit/WeeklyReview";
+import { Budgets, Payments } from "@/components/rumbit/PlanningPanels";
 import { useApp, useMoney } from "@/lib/store";
 import { buildTips } from "@/lib/tips";
 
@@ -32,10 +33,12 @@ function Tips() {
   const tips = buildTips(txs, goals, money);
   return (
     <AppShell title="Consejos para organizar tu dinero">
-      <div className="mb-8 flex items-center gap-4 border-b border-border pb-6">
-        <Rumbi className="h-14 w-14 shrink-0 animate-none" />
-        <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">Analicé tus movimientos registrados y preparé algunos consejos para vos.</p>
+      <WeeklyReview />
+      <div className="mb-8 grid gap-4 lg:grid-cols-2">
+        <Budgets />
+        <Payments />
       </div>
+      <h2 className="mb-3 text-lg font-semibold">Más consejos</h2>
       <div className="grid gap-4 md:grid-cols-2">
         {tips.map((t, i) => {
           const T = TONE[t.tone];

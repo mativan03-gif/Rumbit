@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Info, Target, Wallet, ArrowRight } from "
 import { useState } from "react";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
 import { GoalDialog, TxDialog } from "@/components/rumbit/Dialogs";
+import { HowToGuide } from "@/components/rumbit/HowToGuide";
 import { RumbiTip, Rumbi } from "@/components/rumbit/Rumbi";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -38,18 +39,22 @@ function Dashboard() {
   const cards = [
     { label: "Ingresos del mes", value: t.income, icon: ArrowUpRight, cls: "bg-success-soft text-success" },
     { label: "Gastos del mes", value: t.expenses, icon: ArrowDownRight, cls: "bg-warning-soft text-warning" },
-    { label: "Disponible estimado", value: t.available, icon: Wallet, cls: "bg-primary-soft text-primary" },
+    { label: "Saldo", value: t.available, icon: Wallet, cls: "bg-primary-soft text-primary" },
   ];
 
   return (
     <AppShell title={`¡Hola, ${name}!`}>
       <p className="mb-6 text-sm text-muted-foreground">Tu resumen de {new Date().toLocaleDateString("es-AR", { month: "long", year: "numeric" })}</p>
       <div className="grid gap-6">
-        <div className="grid gap-4 sm:grid-cols-3">
+  <HowToGuide
+    onRegisterExpense={() => setTxType("expense")}
+    onCreateGoal={() => setGoalOpen(true)}
+  />
+  <div className="grid gap-4 sm:grid-cols-3">
           {cards.map((c) => (
             <Panel key={c.label} className={c.icon === Wallet ? "border-primary/20 bg-primary-soft sm:order-first" : ""}>
               <div className="mb-5 flex items-center justify-between gap-2"><p className="text-sm font-medium text-muted-foreground">{c.label}</p><div className={`inline-flex shrink-0 rounded-input p-2 ${c.cls}`}><c.icon className="h-5 w-5" /></div></div>
-              <p className={`finance-number text-2xl font-semibold xl:text-3xl ${c.icon === Wallet ? "text-accent-foreground" : ""}`}>{money(c.value)}</p>
+              <p className={`finance-number text-2xl font-semibold xl:text-3xl ${c.icon === Wallet ? "text-accent-foreground" : ""}`}>{money(c.value)}</p>{c.icon === Wallet && <p className="mt-2 text-xs text-muted-foreground">Ingresos menos gastos que registraste este mes</p>}
             </Panel>
           ))}
         </div>
@@ -107,9 +112,28 @@ function Dashboard() {
               <p className="mt-3 text-sm text-accent-foreground">{rumbiMessage(goals)}</p>
             </Panel>
             {tip && <RumbiTip message={tip.text} />}
+            <Button asChild variant="outline" className="justify-self-start">
+              <Link to="/recomendaciones">Ver tu semana con Rumi</Link>
+            </Button>
           </div>
         </div>
       </div>
+      {/* Mascota interactiva: permanece visible al desplazarse por Inicio. */}
+      <Link
+        to="/jugar-con-rumi"
+        aria-label="Jugar con Rumi"
+        title="¡Jugá conmigo!"
+        className="group fixed bottom-3 left-3 z-30 flex flex-col items-center rounded-2xl p-1 transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:bottom-5 md:left-[270px]"
+      >
+        <span className="mb-1 rounded-full border border-primary/20 bg-white/95 px-3 py-1 text-xs font-semibold text-primary shadow-sm opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+          ¡Jugá conmigo!
+        </span>
+        <img
+          src="/rumi-personaje.svg"
+          alt="Rumi, la mascota de Rumbit"
+          className="h-24 w-auto drop-shadow-lg motion-safe:animate-[rumiFloat_3s_ease-in-out_infinite] sm:h-28 md:h-36"
+        />
+      </Link>
       <TxDialog open={!!txType} onOpenChange={(o) => !o && setTxType(null)} defaultType={txType ?? "expense"} />
       <GoalDialog open={goalOpen} onOpenChange={setGoalOpen} />
     </AppShell>

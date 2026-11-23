@@ -74,7 +74,7 @@ function Goals() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { if (del) actions.deleteGoal(del.id); toast.success("Meta eliminada"); }}>Eliminar</AlertDialogAction>
+            <AlertDialogAction onClick={async () => { if (del && await actions.deleteGoal(del.id)) toast.success("Meta eliminada"); }}>Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
