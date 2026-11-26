@@ -30,6 +30,12 @@ test("requests a new legal acceptance per account and keeps it after reentry", a
 
   act(() => listener()("INITIAL_SESSION", null));
   act(() => actions.startDemo());
+  expect(result.current.legalReviewPending).toBe(true);
+  await act(async () => actions.acceptLegalTerms());
+  expect(auth.updateUser).not.toHaveBeenCalled();
+  expect(localStorage.getItem("rumbit-demo-legal-version")).toBe(LEGAL_VERSION);
+  await act(async () => actions.logout());
+  act(() => actions.startDemo());
   expect(result.current.legalReviewPending).toBe(false);
 
   await act(async () => listener()("SIGNED_IN", firstUser));

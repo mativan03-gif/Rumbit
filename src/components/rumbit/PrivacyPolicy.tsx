@@ -29,7 +29,7 @@ export function PrivacyPolicy() {
           Podés probar la aplicación sin crear una cuenta. Los cambios que hagas en la demo se
           guardan en el navegador que usaste y siguen disponibles después de salir. Para quitarlos,
           podés borrar los datos del sitio desde la configuración de tu navegador. El progreso del
-          minijuego de Rumi también se guarda en el navegador.
+          minijuego de Rumi y la versión de los términos que aceptaste también se guardan en el navegador.
         </p>
       </section>
 

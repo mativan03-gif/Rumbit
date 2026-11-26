@@ -34,6 +34,8 @@ export type State = {
 const DEMO_KEY = "rumbit-demo-state-v2";
 const RECOVERY_KEY = "rumbit-password-recovery";
 export const LEGAL_VERSION = "2026-11-26";
+const DEMO_LEGAL_KEY = "rumbit-demo-legal-version";
+let demoLegalVersion: string | null = null;
 const initial: State = {
   hydrated: false,
   recoveringPassword: false,
@@ -248,7 +250,16 @@ function startDemo() {
   } catch {
     // An unavailable demo snapshot falls back to sample records.
   }
-  set({ ...saved, legalReviewPending: false, session: { email: "invitado@rumbit.app", guest: true } });
+  try {
+    demoLegalVersion = localStorage.getItem(DEMO_LEGAL_KEY);
+  } catch {
+    // Keep the acceptance in memory if browser storage is unavailable.
+  }
+  set({
+    ...saved,
+    legalReviewPending: demoLegalVersion !== LEGAL_VERSION,
+    session: { email: "invitado@rumbit.app", guest: true },
+  });
 }
 
 export async function finishOnboarding() {
@@ -276,12 +287,23 @@ export const actions = {
   startDemo,
   acceptLegalTerms: async () => {
     const session = state.session;
-    const client = getAuthClient();
-    if (!client || !session || session.guest || state.recoveringPassword) {
+    if (!session || state.recoveringPassword) {
       throw new Error("No hay una sesión disponible");
     }
     if (!state.legalReviewPending) return;
+    if (session.guest) {
+      demoLegalVersion = LEGAL_VERSION;
+      try {
+        localStorage.setItem(DEMO_LEGAL_KEY, LEGAL_VERSION);
+      } catch {
+        // Keep the acceptance in memory for this visit.
+      }
+      set({ legalReviewPending: false });
+      return;
+    }
 
+    const client = getAuthClient();
+    if (!client) throw new Error("Autenticación no disponible");
     const { error } = await client.auth.updateUser({
       data: {
         rumbit_legal_version: LEGAL_VERSION,
