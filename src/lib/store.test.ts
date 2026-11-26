@@ -6,6 +6,7 @@ const auth = vi.hoisted(() => ({
   onAuthStateChange: vi.fn(),
   exchangeCodeForSession: vi.fn(),
   signOut: vi.fn(),
+  updateUser: vi.fn(),
   from: vi.fn(),
 }));
 vi.mock("./auth", () => ({ getAuthClient: () => ({ auth, from: auth.from }) }));
@@ -20,6 +21,53 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   window.history.replaceState(null, "", "/");
+});
+
+test("requests a new legal acceptance per account and keeps it after reentry", async () => {
+  const { actions, hydrate, LEGAL_VERSION, useApp } = await import("./store");
+  const { result } = renderHook(() => useApp((state) => state));
+  hydrate();
+
+  act(() => listener()("INITIAL_SESSION", null));
+  act(() => actions.startDemo());
+  expect(result.current.legalReviewPending).toBe(true);
+  await act(async () => actions.acceptLegalTerms());
+  expect(auth.updateUser).not.toHaveBeenCalled();
+  expect(localStorage.getItem("rumbit-demo-legal-version")).toBe(LEGAL_VERSION);
+  await act(async () => actions.logout());
+  act(() => actions.startDemo());
+  expect(result.current.legalReviewPending).toBe(false);
+
+  await act(async () => listener()("SIGNED_IN", firstUser));
+  expect(result.current.legalReviewPending).toBe(true);
+
+  auth.updateUser.mockResolvedValueOnce({ error: new Error("offline") });
+  await act(async () => {
+    await expect(actions.acceptLegalTerms()).rejects.toThrow("offline");
+  });
+  expect(result.current.legalReviewPending).toBe(true);
+
+  auth.updateUser.mockResolvedValueOnce({ error: null });
+  await act(async () => actions.acceptLegalTerms());
+  expect(auth.updateUser).toHaveBeenLastCalledWith({
+    data: {
+      rumbit_legal_version: LEGAL_VERSION,
+      rumbit_legal_accepted_at: expect.any(String),
+    },
+  });
+  expect(result.current.legalReviewPending).toBe(false);
+
+  act(() => listener()("SIGNED_OUT", null));
+  await act(async () => listener()("SIGNED_IN", {
+    ...firstUser,
+    user: { ...firstUser.user, user_metadata: { rumbit_legal_version: LEGAL_VERSION } },
+  }));
+  expect(result.current.legalReviewPending).toBe(false);
+  await act(async () => listener()("SIGNED_IN", {
+    ...firstUser,
+    user: { ...firstUser.user, id: "second", user_metadata: { rumbit_legal_version: "previous" } },
+  }));
+  expect(result.current.legalReviewPending).toBe(true);
 });
 
 test("restores account identity without loading or modifying legacy demo data", async () => {

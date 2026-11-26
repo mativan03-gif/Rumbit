@@ -18,6 +18,7 @@ export type State = {
   accountStatus: "loading" | "ready" | "error";
   saving: boolean;
   onboardingPending: boolean;
+  legalReviewPending: boolean;
   userName: string;
   currency: AccountData["currency"];
   categories: string[];
@@ -32,6 +33,9 @@ export type State = {
 
 const DEMO_KEY = "rumbit-demo-state-v2";
 const RECOVERY_KEY = "rumbit-password-recovery";
+export const LEGAL_VERSION = "2026-11-26";
+const DEMO_LEGAL_KEY = "rumbit-demo-legal-version";
+let demoLegalVersion: string | null = null;
 const initial: State = {
   hydrated: false,
   recoveringPassword: false,
@@ -40,6 +44,7 @@ const initial: State = {
   accountStatus: "loading",
   saving: false,
   onboardingPending: false,
+  legalReviewPending: false,
   userName: "Sofi",
   currency: "ARS",
   categories: DEFAULT_CATEGORIES,
@@ -98,15 +103,18 @@ function onboardingNeeded(user: { id: string; created_at?: string; user_metadata
 function acceptAccount(user: { id: string; email?: string; created_at?: string; user_metadata?: Record<string, unknown> }, recoveringPassword: boolean) {
   const userId = user.id; const email = user.email ?? "";
   const session = { email, userId, guest: false } as const;
+  const legalReviewPending = user.user_metadata?.["rumbit_legal_version"] !== LEGAL_VERSION;
   if (state.session?.guest === false && state.session.userId === userId &&
       state.recoveringPassword === recoveringPassword) {
-    if (state.session.email !== email) set({ session });
+    if (state.session.email !== email || state.legalReviewPending !== legalReviewPending) {
+      set({ session, legalReviewPending });
+    }
     return;
   }
 
   const generation = ++accountGeneration;
   accountRevision = null;
-  set({ ...initial, ...newAccountData, hydrated: true, session, recoveringPassword, onboardingPending: !recoveringPassword && onboardingNeeded(user) });
+  set({ ...initial, ...newAccountData, hydrated: true, session, recoveringPassword, onboardingPending: !recoveringPassword && onboardingNeeded(user), legalReviewPending });
   // Schedule the database request outside the Supabase auth callback.
   if (!recoveringPassword) queueMicrotask(() => {
     if (generation === accountGeneration) void loadAccount(userId);
@@ -242,7 +250,16 @@ function startDemo() {
   } catch {
     // An unavailable demo snapshot falls back to sample records.
   }
-  set({ ...saved, session: { email: "invitado@rumbit.app", guest: true } });
+  try {
+    demoLegalVersion = localStorage.getItem(DEMO_LEGAL_KEY);
+  } catch {
+    // Keep the acceptance in memory if browser storage is unavailable.
+  }
+  set({
+    ...saved,
+    legalReviewPending: demoLegalVersion !== LEGAL_VERSION,
+    session: { email: "invitado@rumbit.app", guest: true },
+  });
 }
 
 export async function finishOnboarding() {
@@ -268,6 +285,36 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 export const actions = {
   startDemo,
+  acceptLegalTerms: async () => {
+    const session = state.session;
+    if (!session || state.recoveringPassword) {
+      throw new Error("No hay una sesión disponible");
+    }
+    if (!state.legalReviewPending) return;
+    if (session.guest) {
+      demoLegalVersion = LEGAL_VERSION;
+      try {
+        localStorage.setItem(DEMO_LEGAL_KEY, LEGAL_VERSION);
+      } catch {
+        // Keep the acceptance in memory for this visit.
+      }
+      set({ legalReviewPending: false });
+      return;
+    }
+
+    const client = getAuthClient();
+    if (!client) throw new Error("Autenticación no disponible");
+    const { error } = await client.auth.updateUser({
+      data: {
+        rumbit_legal_version: LEGAL_VERSION,
+        rumbit_legal_accepted_at: new Date().toISOString(),
+      },
+    });
+    if (error) throw error;
+    if (state.session?.guest === false && state.session.userId === session.userId) {
+      set({ legalReviewPending: false });
+    }
+  },
   retryAccount: () => {
     if (state.session?.guest === false && !state.recoveringPassword && !state.saving) {
       void loadAccount(state.session.userId);
