@@ -28,6 +28,8 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [signup, setSignup] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const hydrated = useApp((state) => state.hydrated);
   const session = useApp((state) => state.session);
@@ -112,7 +114,7 @@ function Login() {
           toast.error(authErrorMessage(error.code));
           return;
         }
-        if (!data.session) toast.success("Revisá tu correo para confirmar la cuenta.");
+        if (!data.session) setVerificationEmail(address);
       } else if (mode === "reset") {
         const { error } = await client.auth.resetPasswordForEmail(address, { redirectTo });
         if (error) {
@@ -144,11 +146,20 @@ function Login() {
         <span className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sin conexión bancaria</span>
       </header>
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <form className="animate-rise w-full max-w-sm space-y-6" onSubmit={(e) => { e.preventDefault(); void enter(recovering ? "update" : "login"); }}>
+        {verificationEmail && !recovering ? (
+          <section className="w-full max-w-sm space-y-4" aria-live="polite">
+            <h1 className="text-3xl font-bold">Revisá tu correo</h1>
+            <p>Buscá el mensaje de Rumbit en <strong className="wrap-anywhere">{verificationEmail}</strong> y abrí el enlace de confirmación en este mismo navegador.</p>
+            <p className="text-sm text-muted-foreground">Si no aparece, revisá la carpeta de correo no deseado.</p>
+            <Button type="button" variant="outline" className="min-h-11 w-full"
+              onClick={() => { setVerificationEmail(""); setSignup(false); }}>Volver a iniciar sesión</Button>
+          </section>
+        ) : (
+        <form className="animate-rise w-full max-w-sm space-y-6" onSubmit={(e) => { e.preventDefault(); void enter(recovering ? "update" : signup ? "signup" : "login"); }}>
           <div className="flex items-center gap-3"><Rumbi className="h-14 w-14 animate-none" /><span className="text-sm font-medium text-primary">¡Hola! Soy Rumi. Te doy la bienvenida a Rumbit.</span></div>
           <div>
-            <h1 className="text-3xl font-bold leading-tight">{recovering ? "Elegí una nueva contraseña" : "Bienvenido a RUMBIT"}</h1>
-            <p className="mt-2 text-muted-foreground">Organizá tu dinero y alcanzá tus objetivos de ahorro.</p>
+            <h1 className="text-3xl font-bold leading-tight">{recovering ? "Elegí una nueva contraseña" : signup ? "Creá tu cuenta" : "Bienvenido a RUMBIT"}</h1>
+            <p className="mt-2 text-muted-foreground">{signup && !recovering ? "Ingresá tu correo y elegí una contraseña de al menos 8 caracteres." : "Organizá tu dinero y alcanzá tus objetivos de ahorro."}</p>
           </div>
           <fieldset disabled={!hydrated || busy || (!!session && !recovering)} className="space-y-6">
             {!recovering && (
@@ -159,12 +170,16 @@ function Login() {
             )}
             <div className="grid gap-2">
               <Label htmlFor="pass">{recovering ? "Nueva contraseña" : "Contraseña"}</Label>
-              <Input id="pass" type="password" autoComplete={recovering ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+              <Input id="pass" type="password" autoComplete={recovering || signup ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
             </div>
             <Button type="submit" variant="hero" className="h-12 w-full">
-              {recovering ? "Guardar contraseña" : "Iniciar sesión"}<ArrowRight />
+              {recovering ? "Guardar contraseña" : signup ? "Enviar correo de verificación" : "Iniciar sesión"}<ArrowRight />
             </Button>
-            {!recovering && (
+            {!recovering && signup && (
+              <Button type="button" variant="ghost" className="min-h-11 w-full"
+                onClick={() => { setSignup(false); setPassword(""); }}>Volver a iniciar sesión</Button>
+            )}
+            {!recovering && !signup && (
               <>
                   <Button
                   type="button"
@@ -175,12 +190,13 @@ function Login() {
                   Continuar con Google
                 </Button>
                 <Button type="button" variant="ghost" className="w-full" onClick={() => void enter("reset")}>Recuperar contraseña</Button>
-                <Button type="button" variant="soft" className="h-11 w-full" onClick={() => void enter("signup")}>Crear cuenta</Button>
+                <Button type="button" variant="soft" className="h-11 w-full" onClick={() => { setSignup(true); setPassword(""); }}>Crear cuenta</Button>
                 <Button type="button" variant="ghost" className="w-full" onClick={actions.startDemo}>Continuar como invitado</Button>
               </>
             )}
           </fieldset>
         </form>
+        )}
       </div>
        <footer className="px-6 pb-8 text-center text-xs leading-relaxed text-muted-foreground">
         <p>Prototipo con datos ficticios. Sin conexión bancaria.</p>

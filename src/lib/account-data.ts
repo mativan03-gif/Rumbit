@@ -1,11 +1,13 @@
 import { z } from "zod";
-import { DEFAULT_CATEGORIES } from "./finance";
+import { DEFAULT_CATEGORIES, NEW_EXPENSE_CATEGORIES } from "./finance";
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const currency = z.enum(["ARS", "USD", "EUR"]);
 const amount = z.number().finite().positive();
 const accountData = z.object({
   userName: z.string(),
+  nameConfigured: z.boolean().optional(),
+  newCategoriesAdded: z.boolean().optional(),
   currency,
   categories: z.array(z.string()).min(1),
   txs: z.array(z.object({
@@ -35,6 +37,8 @@ const accountData = z.object({
 export type AccountData = z.infer<typeof accountData>;
 export const newAccountData: AccountData = {
   userName: "Rumbit",
+  nameConfigured: false,
+  newCategoriesAdded: true,
   currency: "ARS",
   categories: DEFAULT_CATEGORIES,
   txs: [],
@@ -46,6 +50,18 @@ export const newAccountData: AccountData = {
   accessory: null,
 };
 
-export function parseAccountData(data: unknown): AccountData {
-  return accountData.parse(data);
+export function parseAccountData(data: unknown, defaultName = newAccountData.userName): AccountData {
+  const snapshot = accountData.parse(data);
+  if (!snapshot.newCategoriesAdded) {
+    const existing = new Set(snapshot.categories.map((name) => name.trim().toLowerCase()));
+    snapshot.categories = [
+      ...snapshot.categories,
+      ...NEW_EXPENSE_CATEGORIES.filter((name) => !existing.has(name.toLowerCase())),
+    ];
+  }
+  return {
+    ...snapshot,
+    nameConfigured: snapshot.nameConfigured ?? Boolean(snapshot.userName.trim() && snapshot.userName.trim() !== defaultName),
+    newCategoriesAdded: true,
+  };
 }

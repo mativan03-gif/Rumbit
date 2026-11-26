@@ -88,7 +88,7 @@ export function AppShell({ title, actions, children }: { title: string; actions?
          <div className="mx-auto max-w-[1440px]">
          <div className="flex items-center gap-2 border-b border-border px-5 py-4 md:hidden"><img src="/rumbit-logo.png" alt="Rumbit" className="h-9 w-9 rounded-full object-contain" /><span className="font-bold">RUMBIT<span className="text-primary">.</span></span></div>
          <header className="flex flex-wrap items-center justify-between gap-4 px-5 pt-8 md:px-8 md:pt-10 lg:px-10">
-           <h1 className="min-w-0 text-2xl font-bold leading-tight md:text-3xl">{financePending ? "Cuenta Rumbit" : title}</h1>
+           <h1 className="min-w-0 wrap-anywhere text-2xl font-bold leading-tight md:text-3xl">{financePending ? "Cuenta Rumbit" : title}</h1>
           {financePending ? null : actions}
         </header>
          {saving && <p role="status" className="px-5 pt-2 text-sm text-muted-foreground md:px-8 lg:px-10">Guardando…</p>}

@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
+  Navigate,
   Link,
   createRootRouteWithContext,
   useLocation,
@@ -15,6 +16,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { LegalReview } from "@/components/rumbit/LegalReview";
+import { ChooseName } from "@/components/rumbit/ChooseName";
 import { hydrate, useApp } from "@/lib/store";
 
 function NotFoundComponent() {
@@ -84,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, interactive-widget=resizes-content" },
       { title: "RUMBIT · Organizá tu dinero" },
       { name: "description", content: "Organizá ingresos y gastos y alcanzá tus metas de ahorro." },
       
@@ -127,12 +129,26 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useLocation({ select: (location) => location.pathname.replace(/\/$/, "") });
   const legalReviewPending = useApp((state) => state.legalReviewPending && !state.recoveringPassword);
-  const showLegalReview = legalReviewPending && pathname !== "" && pathname !== "/privacidad";
+
+  const profilePending = useApp((state) =>
+    state.session !== null && !state.recoveringPassword && !state.nameConfigured,
+  );
+  const accountStatus = useApp((state) => state.accountStatus);
+  const tutorialPending = useApp((state) =>
+    state.session?.guest === false && !state.recoveringPassword && state.onboardingPending,
+  );
+  const protectedPage = pathname !== "" && pathname !== "/privacidad";
+  let page = <Outlet />;
+  if (protectedPage) {
+    if (profilePending) page = <ChooseName status={accountStatus} />;
+    else if (tutorialPending && pathname !== "/bienvenida") page = <Navigate to="/bienvenida" replace />;
+    else if (!tutorialPending && legalReviewPending) page = <LegalReview />;
+  }
   useEffect(() => hydrate(), []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {showLegalReview ? <LegalReview /> : <Outlet />}
+      {page}
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );

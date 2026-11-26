@@ -20,6 +20,8 @@ export type State = {
   onboardingPending: boolean;
   legalReviewPending: boolean;
   userName: string;
+  nameConfigured: AccountData["nameConfigured"];
+  newCategoriesAdded: AccountData["newCategoriesAdded"];
   currency: AccountData["currency"];
   categories: string[];
   txs: Tx[];
@@ -46,6 +48,8 @@ const initial: State = {
   onboardingPending: false,
   legalReviewPending: false,
   userName: "Sofi",
+  nameConfigured: false,
+  newCategoriesAdded: true,
   currency: "ARS",
   categories: DEFAULT_CATEGORIES,
   txs: SAMPLE_TXS,
@@ -246,7 +250,7 @@ function startDemo() {
   let saved = parseAccountData(initial);
   try {
     const raw = localStorage.getItem(DEMO_KEY);
-    if (raw) saved = parseAccountData(JSON.parse(raw));
+    if (raw) saved = parseAccountData(JSON.parse(raw), initial.userName);
   } catch {
     // An unavailable demo snapshot falls back to sample records.
   }
@@ -257,6 +261,7 @@ function startDemo() {
   }
   set({
     ...saved,
+    accountStatus: "ready",
     legalReviewPending: demoLegalVersion !== LEGAL_VERSION,
     session: { email: "invitado@rumbit.app", guest: true },
   });
@@ -345,7 +350,7 @@ export const actions = {
       return false;
     }
   },
-  setName: (userName: string) => saveData(() => ({ userName })),
+  setName: (userName: string) => saveData(() => ({ userName, nameConfigured: true })),
   setCurrency: (currency: string) => {
     if (currency !== "ARS" && currency !== "USD" && currency !== "EUR") return Promise.resolve(false);
     return saveData(() => ({ currency }));

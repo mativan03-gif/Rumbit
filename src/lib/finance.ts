@@ -9,6 +9,8 @@ export type Tx = {
 };
 export type Goal = { id: string; name: string; target: number; saved: number; date: string };
 
+export const NEW_EXPENSE_CATEGORIES = ["Gimnasio", "Reparaciones del hogar", "Seguros"];
+
 export const DEFAULT_CATEGORIES = [
   "Alimentación",
   "Transporte",
@@ -18,6 +20,7 @@ export const DEFAULT_CATEGORIES = [
   "Salud",
   "Compras",
   "Servicios",
+  ...NEW_EXPENSE_CATEGORIES,
   "Otros",
 ];
 export const INCOME_CATEGORY = "Ingresos";
