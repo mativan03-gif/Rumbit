@@ -3,6 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useLocation,
   useRouter,
   HeadContent,
   Scripts,
@@ -13,7 +14,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import { hydrate } from "@/lib/store";
+import { LegalReview } from "@/components/rumbit/LegalReview";
+import { hydrate, useApp } from "@/lib/store";
 
 function NotFoundComponent() {
   return (
@@ -123,12 +125,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useLocation({ select: (location) => location.pathname.replace(/\/$/, "") });
+  const legalReviewPending = useApp((state) => state.legalReviewPending && !state.recoveringPassword);
+  const showLegalReview = legalReviewPending && pathname !== "" && pathname !== "/privacidad";
   useEffect(() => hydrate(), []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {showLegalReview ? <LegalReview /> : <Outlet />}
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
