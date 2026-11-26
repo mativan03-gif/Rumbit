@@ -118,20 +118,17 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      {/* Mascota interactiva: permanece visible al desplazarse por Inicio. */}
       <Link
         to="/jugar-con-rumi"
-        aria-label="Jugar con Rumi"
-        title="¡Jugá conmigo!"
-        className="group fixed bottom-3 left-3 z-30 flex flex-col items-center rounded-2xl p-1 transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:bottom-5 md:left-[270px]"
+        className="group mx-auto mt-5 flex w-fit flex-col items-center rounded-2xl p-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:fixed md:bottom-5 md:left-[270px] md:z-30 md:m-0 md:transition-transform md:duration-200 md:hover:scale-105"
       >
-        <span className="mb-1 rounded-full border border-primary/20 bg-white/95 px-3 py-1 text-xs font-semibold text-primary shadow-sm opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-          ¡Jugá conmigo!
+        <span className="mb-1 rounded-full border border-primary/20 bg-white/95 px-3 py-1 text-xs font-semibold text-primary shadow-sm transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
+          Jugar con Rumi
         </span>
         <img
           src="/rumi-personaje.svg"
-          alt="Rumi, la mascota de Rumbit"
-          className="h-24 w-auto drop-shadow-lg motion-safe:animate-[rumiFloat_3s_ease-in-out_infinite] sm:h-28 md:h-36"
+          alt=""
+          className="h-24 w-auto drop-shadow-lg md:h-36 motion-safe:md:animate-[rumiFloat_3s_ease-in-out_infinite]"
         />
       </Link>
       <TxDialog open={!!txType} onOpenChange={(o) => !o && setTxType(null)} defaultType={txType ?? "expense"} />

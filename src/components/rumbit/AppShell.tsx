@@ -6,14 +6,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { to: "/inicio", label: "Inicio", icon: Home },
-  { to: "/movimientos", label: "Movimientos", icon: ListOrdered },
-  { to: "/estadisticas", label: "Estadísticas", icon: BarChart3 },
-  { to: "/metas", label: "Metas de ahorro", short: "Metas", icon: PiggyBank },
-  { to: "/jugar-con-rumi", label: "Jugar con Rumi", short: "Jugar", icon: Gamepad2 },
-  { to: "/recomendaciones", label: "Recomendaciones", short: "Consejos", icon: Lightbulb },
-  { to: "/configuracion", label: "Configuración", short: "Ajustes", icon: Settings },
+  { to: "/inicio", label: "Inicio", mobileLabel: "Inicio", icon: Home },
+  { to: "/movimientos", label: "Movimientos", mobileLabel: "Movimientos", icon: ListOrdered },
+  { to: "/estadisticas", label: "Estadísticas", mobileLabel: "Estadísticas", icon: BarChart3 },
+  { to: "/metas", label: "Metas de ahorro", mobileLabel: "Metas", icon: PiggyBank },
+  { to: "/jugar-con-rumi", label: "Jugar con Rumi", icon: Gamepad2 },
+  { to: "/recomendaciones", label: "Recomendaciones", icon: Lightbulb },
+  { to: "/configuracion", label: "Configuración", mobileLabel: "Ajustes", icon: Settings },
 ] as const;
+
+const MOBILE_NAV = NAV.filter((item) => "mobileLabel" in item);
 
 export function AppShell({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   const hydrated = useApp((s) => s.hydrated);
@@ -82,7 +84,7 @@ export function AppShell({ title, actions, children }: { title: string; actions?
 </div>
       </aside>
 
-       <main className="min-w-0 pb-24 md:pb-12 md:pl-64">
+       <main className="min-w-0 pb-[calc(var(--spacing)*24+env(safe-area-inset-bottom))] md:pb-12 md:pl-64">
          <div className="mx-auto max-w-[1440px]">
          <div className="flex items-center gap-2 border-b border-border px-5 py-4 md:hidden"><img src="/rumbit-logo.png" alt="Rumbit" className="h-9 w-9 rounded-full object-contain" /><span className="font-bold">RUMBIT<span className="text-primary">.</span></span></div>
          <header className="flex flex-wrap items-center justify-between gap-4 px-5 pt-8 md:px-8 md:pt-10 lg:px-10">
@@ -108,16 +110,17 @@ export function AppShell({ title, actions, children }: { title: string; actions?
          </div>
       </main>
 
-       <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-border bg-card md:hidden">
-        {NAV.map((n) => (
+       <nav aria-label="Navegación principal" className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card md:hidden">
+        {MOBILE_NAV.map((n) => (
           <Link
             key={n.to}
             to={n.to}
-             className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 py-2 text-[9px] font-medium text-muted-foreground sm:text-[10px]"
+            aria-label={n.label}
+             className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 py-2 text-center text-[10px] font-medium leading-tight text-muted-foreground min-[360px]:text-[11px]"
              activeProps={{ className: "!text-primary bg-primary-soft" }}
           >
-            <n.icon className="h-5 w-5" />
-            {"short" in n ? n.short : n.label}
+            <n.icon aria-hidden="true" className="h-5 w-5" />
+            {n.mobileLabel}
           </Link>
         ))}
       </nav>
