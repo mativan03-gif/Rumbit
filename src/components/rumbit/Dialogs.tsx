@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 
 import { localDateKey, type ExpenseShortcut } from "@/lib/planning";
 
+const CATEGORY_SUGGESTIONS = ["Mascotas", "Suscripciones", "Regalos"];
+
 export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shortcut }: { open: boolean; onOpenChange: (o: boolean) => void; tx?: Tx | null; defaultType?: TxType; shortcut?: ExpenseShortcut | null }) {
   const categories = useApp((s) => s.categories);
   const [type, setType] = useState<TxType>(defaultType);
@@ -18,18 +20,44 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shor
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState(localDateKey);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
 
   useEffect(() => {
     if (!open) return;
     setType(tx?.type ?? defaultType);
     setAmount(tx ? String(tx.amount) : "");
     setDescription(tx?.description ?? shortcut?.description ?? "");
-    setCategory(tx?.category ?? (shortcut && categories.includes(shortcut.category) ? shortcut.category : ""));
+    setCategory(tx?.category ?? shortcut?.category ?? "");
     setDate(tx?.date ?? localDateKey());
-  }, [open, tx, defaultType, shortcut, categories]);
+    setAddingCategory(false);
+    setNewCategory("");
+  }, [open, tx, defaultType, shortcut]);
 
-  const cats = type === "income" ? [INCOME_CATEGORY, ...categories] : categories;
+  const cats = [...new Set([
+    ...(type === "income" ? [INCOME_CATEGORY] : []),
+    ...categories,
+    ...(tx?.type === type ? [tx.category] : []),
+    ...(type === "expense" && shortcut ? [shortcut.category] : []),
+  ])];
 
+  const addCategory = async (value: string) => {
+    const name = value.trim();
+    if (!name) return;
+    if ([INCOME_CATEGORY, ...categories].some((item) => item.trim().toLowerCase() === name.toLowerCase())) {
+      toast.error("Esa categoría ya existe.");
+      return;
+    }
+    if (!(await actions.setCategories([...categories, name]))) return;
+    setCategory(name);
+    setNewCategory("");
+    setAddingCategory(false);
+    toast.success("Categoría agregada");
+  };
+
+  const suggestions = CATEGORY_SUGGESTIONS.filter((name) =>
+    !categories.some((item) => item.trim().toLowerCase() === name.toLowerCase()),
+  );
   const saving = useApp((s) => s.saving);
   const save = async () => {
     const data = { type, amount: Number(amount), description: description.trim(), category: category || (type === "income" ? INCOME_CATEGORY : ""), date };
@@ -50,9 +78,37 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shor
     <div className="grid gap-1.5">
       <Label>Categoría *</Label>
       <Select value={category} onValueChange={setCategory}>
-        <SelectTrigger aria-label="Categoría"><SelectValue placeholder="Elegí" /></SelectTrigger>
-        <SelectContent>{cats.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+        <SelectTrigger className="min-h-11 min-w-0" aria-label="Categoría"><SelectValue placeholder="Elegí" /></SelectTrigger>
+        <SelectContent>{cats.map((c) => <SelectItem className="min-h-11 sm:min-h-0" key={c} value={c}>{c}</SelectItem>)}</SelectContent>
       </Select>
+      {type === "expense" && (
+        addingCategory ? (
+          <div className="grid min-w-0 gap-2 rounded-xl bg-muted/50 p-3">
+            <Input aria-label="Nombre de la nueva categoría"
+              placeholder="Ej. Mascotas" value={newCategory} maxLength={24}
+              onChange={(event) => setNewCategory(event.target.value)}
+              onKeyDown={(event) => { if (event.key === "Enter" && !saving) void addCategory(newCategory); }} />
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="soft" className="min-h-11" disabled={saving || !newCategory.trim()}
+                onClick={() => void addCategory(newCategory)}>Agregar</Button>
+              <Button type="button" variant="ghost" className="min-h-11" disabled={saving}
+                onClick={() => setAddingCategory(false)}>Cancelar</Button>
+            </div>
+            {suggestions.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-full text-sm text-muted-foreground">Sugerencias</span>
+                {suggestions.map((name) => (
+                  <Button key={name} type="button" size="sm" variant="outline" className="min-h-11 sm:min-h-9" disabled={saving}
+                    onClick={() => void addCategory(name)}>{name}</Button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <Button type="button" variant="link" className="min-h-11 justify-self-start px-0"
+            onClick={() => setAddingCategory(true)}>Crear categoría</Button>
+        )
+      )}
     </div>
   );
   const dateField = (
@@ -64,8 +120,8 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl">
-        <DialogHeader>
+      <DialogContent className="gap-4 overscroll-contain p-4 sm:gap-6 sm:p-6">
+        <DialogHeader className="py-2 pe-10 text-left sm:py-0">
           <DialogTitle>{tx ? "Editar movimiento" : "Nuevo movimiento"}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
@@ -74,7 +130,10 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shor
               <Button
                 key={t}
                 type="button"
-                onClick={() => setType(t)}
+                onClick={() => {
+                  setType(t);
+                  if (t === "expense" && category === INCOME_CATEGORY) setCategory("");
+                }}
                 variant="ghost"
                 aria-pressed={type === t}
                 className={cn("rounded-input text-sm font-medium", type === t ? "bg-card text-primary shadow-card hover:bg-card" : "text-muted-foreground")}
@@ -103,7 +162,7 @@ export function TxDialog({ open, onOpenChange, tx, defaultType = "expense", shor
             </>
           )}
         </div>
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 [&>button]:min-h-11">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button variant="hero" onClick={save} disabled={saving}>Guardar movimiento</Button>
         </DialogFooter>
