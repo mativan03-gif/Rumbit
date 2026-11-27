@@ -135,14 +135,14 @@ function RootComponent() {
   );
   const accountStatus = useApp((state) => state.accountStatus);
   const tutorialPending = useApp((state) =>
-    state.session?.guest === false && !state.recoveringPassword && state.onboardingPending,
+    state.session !== null && !state.recoveringPassword && state.onboardingPending,
   );
   const protectedPage = pathname !== "" && pathname !== "/privacidad";
   let page = <Outlet />;
   if (protectedPage) {
-    if (profilePending) page = <ChooseName status={accountStatus} />;
+    if (legalReviewPending) page = <LegalReview />;
+    else if (profilePending) page = <ChooseName status={accountStatus} />;
     else if (tutorialPending && pathname !== "/bienvenida") page = <Navigate to="/bienvenida" replace />;
-    else if (!tutorialPending && legalReviewPending) page = <LegalReview />;
   }
   useEffect(() => hydrate(), []);
 

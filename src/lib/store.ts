@@ -36,8 +36,7 @@ export type State = {
 const DEMO_KEY = "rumbit-demo-state-v2";
 const RECOVERY_KEY = "rumbit-password-recovery";
 export const LEGAL_VERSION = "2026-11-26";
-const DEMO_LEGAL_KEY = "rumbit-demo-legal-version";
-let demoLegalVersion: string | null = null;
+const DEMO_VISITOR_KEY = "rumbit-demo-visitor-id";
 const initial: State = {
   hydrated: false,
   recoveringPassword: false,
@@ -246,6 +245,16 @@ export function hydrate() {
   }
 }
 
+async function recordDemoVisitor() {
+  try {
+    const visitorId = localStorage.getItem(DEMO_VISITOR_KEY) ?? crypto.randomUUID();
+    localStorage.setItem(DEMO_VISITOR_KEY, visitorId);
+    await getAuthClient()?.from("rumbit_guest_visitors").insert({ id: visitorId });
+  } catch {
+    // Guest access remains available offline. The next entry retries the insert.
+  }
+}
+
 function startDemo() {
   let saved = parseAccountData(initial);
   try {
@@ -254,22 +263,23 @@ function startDemo() {
   } catch {
     // An unavailable demo snapshot falls back to sample records.
   }
-  try {
-    demoLegalVersion = localStorage.getItem(DEMO_LEGAL_KEY);
-  } catch {
-    // Keep the acceptance in memory if browser storage is unavailable.
-  }
   set({
     ...saved,
     accountStatus: "ready",
-    legalReviewPending: demoLegalVersion !== LEGAL_VERSION,
+    nameConfigured: false,
+    onboardingPending: true,
+    legalReviewPending: false,
     session: { email: "invitado@rumbit.app", guest: true },
   });
 }
 
 export async function finishOnboarding() {
   const session = state.session;
-  if (!session || session.guest) return;
+  if (!session) return;
+  if (session.guest) {
+    set({ onboardingPending: false });
+    return;
+  }
   // Persist on the account itself, so it also works on a new device.
   const client = getAuthClient();
   if (!client) throw new Error("Autenticación no disponible");
@@ -295,17 +305,7 @@ export const actions = {
     if (!session || state.recoveringPassword) {
       throw new Error("No hay una sesión disponible");
     }
-    if (!state.legalReviewPending) return;
-    if (session.guest) {
-      demoLegalVersion = LEGAL_VERSION;
-      try {
-        localStorage.setItem(DEMO_LEGAL_KEY, LEGAL_VERSION);
-      } catch {
-        // Keep the acceptance in memory for this visit.
-      }
-      set({ legalReviewPending: false });
-      return;
-    }
+    if (!state.legalReviewPending || session.guest) return;
 
     const client = getAuthClient();
     if (!client) throw new Error("Autenticación no disponible");
@@ -350,7 +350,13 @@ export const actions = {
       return false;
     }
   },
-  setName: (userName: string) => saveData(() => ({ userName, nameConfigured: true })),
+  setName: async (userName: string) => {
+    const name = userName.trim();
+    if (!name) return false;
+    const saved = await saveData(() => ({ userName: name, nameConfigured: true }));
+    if (saved && state.session?.guest && state.onboardingPending) void recordDemoVisitor();
+    return saved;
+  },
   setCurrency: (currency: string) => {
     if (currency !== "ARS" && currency !== "USD" && currency !== "EUR") return Promise.resolve(false);
     return saveData(() => ({ currency }));

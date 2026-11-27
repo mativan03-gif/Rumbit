@@ -30,13 +30,30 @@ test("requests a new legal acceptance per account and keeps it after reentry", a
 
   act(() => listener()("INITIAL_SESSION", null));
   act(() => actions.startDemo());
-  expect(result.current.legalReviewPending).toBe(true);
-  await act(async () => actions.acceptLegalTerms());
+  expect(result.current.legalReviewPending).toBe(false);
+  expect(result.current.onboardingPending).toBe(true);
+  expect(result.current.nameConfigured).toBe(false);
+  const insert = vi.fn().mockResolvedValue({ error: null });
+  auth.from.mockImplementation((table) => table === "rumbit_guest_visitors" ? { insert } : undefined);
+  expect(insert).not.toHaveBeenCalled();
+  await act(async () => actions.setName("  Mati  "));
+  expect(result.current.userName).toBe("Mati");
+  expect(result.current.nameConfigured).toBe(true);
+  const visitorId = localStorage.getItem("rumbit-demo-visitor-id");
+  expect(visitorId).toEqual(expect.any(String));
+  expect(insert).toHaveBeenCalledExactlyOnceWith({ id: visitorId });
   expect(auth.updateUser).not.toHaveBeenCalled();
-  expect(localStorage.getItem("rumbit-demo-legal-version")).toBe(LEGAL_VERSION);
+  const { finishOnboarding } = await import("./store");
+  await act(async () => finishOnboarding());
+  expect(result.current.onboardingPending).toBe(false);
   await act(async () => actions.logout());
   act(() => actions.startDemo());
   expect(result.current.legalReviewPending).toBe(false);
+  expect(result.current.onboardingPending).toBe(true);
+  expect(result.current.nameConfigured).toBe(false);
+  expect(insert).toHaveBeenCalledTimes(1);
+  await act(async () => actions.setName("Mati"));
+  expect(insert.mock.calls).toEqual([[{ id: visitorId }], [{ id: visitorId }]]);
 
   await act(async () => listener()("SIGNED_IN", firstUser));
   expect(result.current.legalReviewPending).toBe(true);

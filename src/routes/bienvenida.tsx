@@ -13,9 +13,9 @@ const steps = [
 export function Welcome({ replay = false }: { replay?: boolean }) {
   const navigate = useNavigate(); const session = useApp(s => s.session); const hydrated = useApp(s => s.hydrated); const pending = useApp(s => s.onboardingPending);
   const [step, setStep] = useState(0); const [busy, setBusy] = useState(false);
-  useEffect(() => { if (hydrated && (!session || (!replay && (session.guest || !pending)))) void navigate({to: session ? "/inicio" : "/", replace:true}); }, [hydrated,session,pending,navigate,replay]);
+  useEffect(() => { if (hydrated && (!session || (!replay && !pending))) void navigate({to: session ? "/inicio" : "/", replace:true}); }, [hydrated,session,pending,navigate,replay]);
   const finish = async () => { setBusy(true); try { if (!replay) await finishOnboarding(); void navigate({to:"/inicio",replace:true}); } catch { toast.error("No pudimos guardar la bienvenida. Intentá otra vez."); } finally {setBusy(false);} };
-  if (!hydrated || !session || (!replay && (session.guest || !pending))) return null;
+  if (!hydrated || !session || (!replay && !pending)) return null;
   return <main className="flex min-h-screen items-center justify-center bg-[#FFF8E1] p-4 sm:p-8"><section className="w-full max-w-xl rounded-3xl border border-[#DCCBFF] bg-white p-5 shadow-xl sm:p-9">
     <div className="flex items-center gap-4"><Rumbi className="h-20 w-20 sm:h-28 sm:w-28"/><div><p className="text-sm font-semibold text-primary">{replay ? "Repasá con Rumi" : "Rumi te acompaña"}</p><h1 className="text-2xl font-bold sm:text-3xl">{replay ? "¡Repasemos cómo usar Rumbit!" : "¡Te damos la bienvenida a Rumbit!"}</h1></div></div>
     <p className="mt-5 text-sm text-muted-foreground">Paso {step+1} de 3 · Una guía rápida para empezar</p><div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{width:`${(step+1)/3*100}%`}}/></div>
