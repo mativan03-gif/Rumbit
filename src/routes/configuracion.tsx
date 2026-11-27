@@ -96,6 +96,36 @@ function Settings() {
             <Button variant="destructive" disabled={saving} onClick={async () => { if (await actions.logout()) { toast.success("Sesión cerrada"); void navigate({ to: "/", replace: true }); } else { toast.error("No pudimos cerrar la sesión. Volvé a intentar."); } }}><LogOut />Cerrar sesión</Button>
           </div>
         </Panel>
+        <Panel className="lg:col-span-2">
+          <div className="flex flex-col items-center gap-5 sm:flex-row">
+            <img
+              src="/rumi-oficial.png"
+              alt="Rumi, mascota de Rumbit"
+              className="h-28 w-28 shrink-0 object-contain"
+            />
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-lg font-semibold">
+                ¡Ayudame a mejorar Rumbit!
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Tu opinión me ayuda a crecer. Contame qué te gustó,
+                qué podemos mejorar y qué nuevas funciones te gustaría encontrar.
+              </p>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScj114G5wyTzgZOlsbw0mfjTV9dTNz0WBmyudLBhFRgtHEpmw/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Completar encuesta
+              </a>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Solo te llevará unos minutos.
+              </p>
+            </div>
+          </div>
+        </Panel>
+
       </div>
     </AppShell>
   );

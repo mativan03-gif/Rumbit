@@ -54,6 +54,19 @@ export function AppShell({ title, actions, children }: { title: string; actions?
               {n.label}
             </Link>
           ))}
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLScj114G5wyTzgZOlsbw0mfjTV9dTNz0WBmyudLBhFRgtHEpmw/viewform"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-12 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <img
+              src="/rumi-oficial.png"
+              alt=""
+              className="h-7 w-7 shrink-0 object-contain"
+            />
+            Encuesta de satisfacción
+          </a>
         </nav>
          
 <div className="mt-auto border-t border-border pt-6">
