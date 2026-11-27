@@ -29,7 +29,12 @@ export function PrivacyPolicy() {
           Podés probar la aplicación sin crear una cuenta. Los cambios que hagas en la demo se
           guardan en el navegador que usaste y siguen disponibles después de salir. Para quitarlos,
           podés borrar los datos del sitio desde la configuración de tu navegador. El progreso del
-          minijuego de Rumi y la versión de los términos que aceptaste también se guardan en el navegador.
+          minijuego de Rumi también se guarda en el navegador.
+        </p>
+        <p className="mt-2">
+          Tu nombre o apodo de invitado se guarda en el navegador. Para contar cuántos navegadores
+          prueban la beta, guardamos en Supabase un identificador aleatorio y la fecha del primer
+          ingreso.
         </p>
       </section>
 
