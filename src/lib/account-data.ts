@@ -23,6 +23,12 @@ const accountData = z.object({
     name: z.string(),
     target: z.number().finite().positive(),
     saved: z.number().finite().nonnegative(),
+    plan: z.object({
+      contribution: z.number().finite().positive().max(1000000000000),
+      frequency: z.enum(["weekly", "biweekly", "monthly"]),
+      startDate: date,
+      initialSaved: z.number().finite().nonnegative(),
+    }).optional(),
     date,
   })),
   budgets: z.array(z.object({ category: z.string(), limit: amount, currency })).default([]),

@@ -7,7 +7,21 @@ export type Tx = {
   category: string;
   date: string; // YYYY-MM-DD
 };
-export type Goal = { id: string; name: string; target: number; saved: number; date: string };
+export type SavingsPlan = {
+  contribution: number;
+  frequency: "weekly" | "biweekly" | "monthly";
+  startDate: string;
+  initialSaved: number;
+};
+
+export type Goal = {
+  id: string;
+  name: string;
+  target: number;
+  saved: number;
+  date: string;
+  plan?: SavingsPlan | undefined;
+};
 
 export const NEW_EXPENSE_CATEGORIES = ["Gimnasio", "Reparaciones del hogar", "Seguros"];
 
