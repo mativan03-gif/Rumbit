@@ -1,5 +1,6 @@
+import { SavingsSimulator } from "@/components/rumbit/SavingsSimulator";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, Calculator, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Panel } from "@/components/rumbit/AppShell";
@@ -28,13 +29,46 @@ function Goals() {
   const goals = useApp((s) => s.goals);
   const money = useMoney();
   const [open, setOpen] = useState(false);
+  const [simulatorOpen, setSimulatorOpen] = useState(false);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Goal | null>(null);
   const [adding, setAdding] = useState<Goal | null>(null);
   const [del, setDel] = useState<Goal | null>(null);
 
   return (
-    <AppShell title="Mis metas de ahorro" actions={<Button variant="hero" onClick={() => { setEditing(null); setOpen(true); }}><Plus />Crear meta</Button>}>
+    <AppShell
+      title="Mis metas de ahorro"
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="hero"
+            onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }}
+          >
+            <Plus />
+            Crear meta
+          </Button>
+
+          <Button
+            variant="soft"
+            aria-expanded={simulatorOpen}
+            onClick={() => { setSelectedGoalId(null); setSimulatorOpen(!simulatorOpen || selectedGoalId !== null); }}
+          >
+            <Calculator />
+            {simulatorOpen ? "Ocultar simulador" : "Simular ahorro"}
+          </Button>
+        </div>
+      }
+    >
       <div className="mb-5"><RumbiTip title="Rumbi dice" message={rumbiMessage(goals)} /></div>
+
+      {simulatorOpen && (
+        <div id="savings-simulator" className="mb-5 min-w-0 animate-rise scroll-mt-4">
+          <SavingsSimulator key={selectedGoalId ?? "new"} goal={goals.find((g) => g.id === selectedGoalId)} />
+        </div>
+      )}
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {goals.map((g) => {
           const { pct, remaining } = goalProgress(g);
@@ -57,6 +91,20 @@ function Goals() {
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{remaining ? `Te faltan ${money(remaining)}` : "¡Meta cumplida! 🎉"}</p>
               <Button variant="soft" className="mt-4 w-full" onClick={() => setAdding(g)}>Registrar avance</Button>
+              <Button
+                variant="outline"
+                className="mt-2 w-full"
+                onClick={() => {
+                  setSelectedGoalId(g.id);
+                  setSimulatorOpen(true);
+                  requestAnimationFrame(() => {
+                    document.getElementById("savings-simulator")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  });
+                }}
+              >
+                <Calculator className="mr-2 h-4 w-4" />
+                Planificar mi ahorro
+              </Button>
             </Panel>
           );
         })}

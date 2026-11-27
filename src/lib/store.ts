@@ -100,7 +100,7 @@ async function loadAccount(userId: string) {
 
 function onboardingNeeded(user: { id: string; created_at?: string; user_metadata?: Record<string, unknown> }) {
   // Show the introduction once to every authenticated account, including existing users.
-  if (user.user_metadata?.rumbit_onboarding_complete === true) return false;
+  if (user.user_metadata?.['rumbit_onboarding_complete'] === true) return false;
   try { return localStorage.getItem(`rumbit-onboarding-${user.id}`) !== "done"; } catch { return true; }
 }
 function acceptAccount(user: { id: string; email?: string; created_at?: string; user_metadata?: Record<string, unknown> }, recoveringPassword: boolean) {
@@ -369,7 +369,7 @@ export const actions = {
   deleteTx: (id: string) => saveData((s) => ({ txs: s.txs.filter((x) => x.id !== id) })),
   saveGoal: (g: Omit<Goal, "id"> & { id?: string | undefined }) =>
     saveData((s) => ({
-      goals: g.id ? s.goals.map((x) => (x.id === g.id ? (g as Goal) : x)) : [...s.goals, { ...g, id: uid() }],
+      goals: g.id ? s.goals.map((x) => (x.id === g.id ? { ...x, ...g, id: x.id, plan: g.plan ?? x.plan } : x)) : [...s.goals, { ...g, id: uid() }],
     })),
   addProgress: (id: string, amount: number) =>
     saveData((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, saved: g.saved + amount } : g)) })),
